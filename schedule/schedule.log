@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2017.2.10)  18 NOV 2018 03:17
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2017.2.10)  20 NOV 2018 07:32
 entering extended mode
 **./schedule.tex
 (schedule.tex
@@ -706,13 +706,13 @@ Here is how much of TeX's memory you used:
  12498 multiletter control sequences out of 15000+200000
  7779 words of font info for 30 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 42i,6n,38p,620b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 42i,6n,38p,610b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
  <C:\Users\iris\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\
 jknappen\ec\dpi600\tcrm1200.pk><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
 amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
 /cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17
 .pfb>
-Output written on schedule.pdf (2 pages, 45952 bytes).
+Output written on schedule.pdf (2 pages, 46401 bytes).
 PDF statistics:
  26 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
