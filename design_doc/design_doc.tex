@@ -33,7 +33,6 @@
 \usepackage{amsthm}
 \usepackage{amsfonts}
 \usepackage{tabularx}
-\usepackage[retainorgcmds]{IEEEtrantools}
 \usepackage{comment}
 \usepackage{multirow}
 \usepackage{tabularx}
@@ -49,11 +48,21 @@
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
-\theoremstyle{remark}
-\newtheorem{remark}{\textbf{Remark}}
-\newtheorem{theorem}{Theorem}
-\newtheorem{theorem*}{Theorem*}
-\newtheorem{lemma}{Lemma}
+% plot UML
+\usepackage[simplified]{pgf-umlcd}
+
+
+\newenvironment{changemargin}[2]{%
+\begin{list}{}{%
+	\setlength{\topsep}{0pt}%
+	\setlength{\leftmargin}{#1}%
+	\setlength{\rightmargin}{#2}%
+	\setlength{\listparindent}{\parindent}%
+	\setlength{\itemindent}{\parindent}%
+	\setlength{\parsep}{\parskip}%
+}%
+\item[]}{\end{list}}
+
 
 %%%%%%%%%%%%%%%%%%%%%%% End of packages %%%%%%%%%%%%%%%%%%%%%%%
 
@@ -127,67 +136,192 @@ members Ping Wu. She uses some fluorescent antibodies to stain for endogenous pr
 Given the above background information, we would like to achieve two objectives in this project. The first one is to create an interface adapted to the existing
 codes in order to facilitate the future development in her own research. The second objective tends to improve automation. The initial image processing is still done manually currently, which is time consuming. The initial step requires recognition the morphology of the embryo and distinguish head and tail, dorsal and ventral side, and then rotate and center the object. Some noise removal steps are also required. If we have spare time, we could adapt this code to a series of time lapse images, with cell tracking function and parallel computing function for large scale image processing.
 
-?	%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%
 	
 	\section{Organization}
 
-	The codes will be written in Python. They are basically built on two classes, one for data storage and another one for structure identification and intensity analysis. 
+	\subsection{Goal}[detail description will be completed by Ping]
 	
-	\subsection{Class for data storage}
-	There are at least 4 type of genes being tracked in this project. For each of them, a photograph of the whole embryo is taken in which we can observe their spatial positions along with the fluorescent intensities.
+	A group of drosophila embryos that lie on a plane have been photographed in order to keep track of the development of 4 genes' spatial expression profiles (say ``gene" for short in the following). At a special given time, we are provided with a collection of images corresponded to different sample embryos as well as their gene profiles. Each sample embryo has 4 different gene profiles.
 	
-	\begin{itemize}
-		\item \textbf{embryo}: an abstract class. Each instance of class embryo represents a sample embryo for study. Two child classes will be derive from it: \textbf{gene, topology}. This class also contains a member of helper class: \textbf{filter}
-		
-		abstract methods:
-		\begin{itemize}
-			\item apply a filter to a gene object, returns a topology object.
-			\item apply a filter to a topology object, returns a topology object.
-			\item study the effect of a topology on a gene object, returns a topology object. This method will be the core for the upcoming biological analysis.  In this situation, the class member ``filter" in the topology object will be invoked.
-		\end{itemize} 
-		 
+	{\color{red} Question: please describe how many gene profiles do we have? different gene expression profile due to how many different situations? }
 	
-		\item \textbf{gene}: this class represents a particular status of some kind of gene. It contains one image of the spatial location of this gene at a certain time. 
-		For serial data, it can also contains consecutive images that represent the spatial evolution of this gene along time.
-		
-		\item \textbf{topology}: this class represents the spatial structure of a typical fluorescent gene in an embryo. It can contain one or multiple structures of this typical gene in a sample embryo.
-		
-		It can have child classes, for example \textbf{``boundary"} and \textbf{``intensity"}, which are designed for storing special topology information.
-		
-		\item \textbf{filter}: this class represents the information of filters that we would like to apply on an image. The image can be a typical gene's spatial locations (store in the ``\textbf{gene}" object), or a certain topology image of an embryo (store in the \textbf{``topology"} object).		
-		
-	\end{itemize} 
+	Our objective is the following: 
+	\begin{enumerate}
+		\item Rotate the sample embryo in an image so that the line from head to tail of that embryo is level.
+		\item Detect meaningful area of/inside a sample embryo image to extract the luminosity information of gene expression.
+		\item [Optimal:] Create a mask from a particular gene expression of a sample embryo, and then apply this mask to other gene expressions of the same embryo in order to detect luminosity information of other genes.
+	\end{enumerate} 
+	
+	\subsection{Design pattern}
+	The codes will be written in Python. 
+	
+	\subsubsection{detail description}
+	
+	\begin{tabular}{ l  l| l}	
+		\multicolumn{3}{c}{Embryo}\\
+		\hline
+		attribute &  type & Description\\
+		\hline \hline
+		gene\_name & String & name of the gene\\
+		spatial\_loc\_rgb & $2d\times3$ array & rgb image of the spatial gene expression\\
+		&& in an embryo\\
+		spatial\_loc & 2d array & gray scale image of \textit{spatial\_loc\_rgb}\\
+		\hline\hline
+		method & return type & description\\
+		\hline
+		read\_from\_filename & $2d \times 3$ array & read an rgb image from a filename,\\
+		&& store it in \textit{spatial\_loc} \\
+		read\_from\_array & $2d \times 3$ array & read an rgb image from a 2d array,\\
+		&& store it in  \textit{spatial\_loc}\\
+		rgb2gray &  2d array & convert to gray scale image\\
+		\hline
+	\end{tabular}
+	
+	
+	\subsubsection{Hierarchy between classes}
+	
+	\begin{minipage}[c]{1.5\textwidth}
+	\begin{changemargin}{-3cm}{-3cm}
 
+	\begin{small}
 	
-	\subsection{Class for intensity analysis}
+	\begin{tikzpicture}%[show background grid]
 	
-	There are three classes there: \textbf{preprocessing}, \textbf{analysis}, \textbf{drawing}
-	These three classes are wrappers of the ``embryo" class.
-	
-	\begin{itemize}
-		\item \textbf{preprocessing}: this class is dedicate for any pre-treatments on an embryo's photograph. It contains a class member of ``topology" type.
+		\begin{class}[text width=3.5cm]{Embryo}{-3,2}
+			\attribute{gene\_name}
+			\attribute{spatial\_loc}
+			
+			\operation{read\_from\_filename}
+			\operation{read\_from\_array}
+			\operation{rgb2gray}
+		\end{class}
 		
-		Methods:
-		\begin{itemize}
-			\item boundary detection, return type: void. 
-			\item rotation/centralization, output: embryo object.
-		\end{itemize}
-	
-		\item \textbf{analysis}: this class collects all methods for studying fluorescent intensity. It contains a class member of ``topology" type.
+		\begin{class}[text width=3cm]{Boundary}{0,-3}
+			\attribute{boundary\_curve}
+			\attribute{head,tail}
+			
+			\operation{detect\_head}
+			\operation{detect\_tail}
+		\end{class}
 		
-		Methods:
-		\begin{itemize}
-			\item get intensity, return type:void.
-			\item normalization, return type:void.
-		\end{itemize}
+		
+		%% Testing area
+		\begin{abstractclass}[text width =3cm]{Testing Area}{-5,-3}
+			\attribute{type: String}
+			\attribute{area}
+			\attribute{area\_mask(Mask)}
+			% abstract method
+			\operation[0]{detect\_area}
+			\operation{build\_mask}
+		\end{abstractclass}
+		
+		
+		\begin{class}[text width = 4cm]{Polygone}{-2,-8}
+		\inherit{Testing Area}
+			\attribute{vertices}
+			\attribute{head\_dropoff\_threshold}
+			\attribute{tail\_dropoff\_threshold}
+			
+			\operation{detect\_area, build\_mask}
+			\operation{vertex2area}
+		\end{class}
+		
+		\begin{class}[text width= 4cm]{EntireCell}{-7,-8}
+		\inherit{Testing Area}
+			\attribute{filters(Filter)}
+			
+			\operation{detect\_area, build\_mask}
+			\operation{denoise}
+			\operation{separation}
+		\end{class}
+		
+		
+		% Mask
+		\begin{class}[text width=3cm]{Mask}{-8,0}
+			\attribute{type: String}
+			\attribute{pattern}
+		
+			\operation{Mask}
+		\end{class}
+		
+		
+		%% Filter class
+		\begin{abstractclass}[text width=4cm]{Filter}{-7,-12}
+		\attribute{type : String}
+		\attribute{pattern}
+		
+		\operation[0]{build\_filter}
+		\end{abstractclass}
+		
+		\begin{class}[text width=3cm]{CircFilter}{-8, -16}
+		\inherit{Filter}
+		\operation{build\_filter}
+		\end{class}
+		
+		\begin{class}[text width=3cm]{DistFilter}{-3,-16}
+		\inherit{Filter}
+		\operation{build\_filter}
+		\end{class}
+		
+		
+		
+		%% Analysis
+		\begin{abstractclass}[text width =4cm]{Analysis}{6.5,2}
+		\end{abstractclass}
+		
+		\begin{class}[text width=3.5cm]{Rotation}{4.5,-5}
+		\inherit{Analysis}
+			\attribute{angle}
+			\attribute{embryo, boundary}
+			
+			\operation{detect\_angle}
+			\operation{rotate\_embryo}
+			\operation{adjust\_headtail}
+		\end{class}
+				
+				
+		\begin{class}[text width=5cm]{Intensity}{7, -10}
+		\inherit{Analysis}
+			\attribute{curve}
+		
+			\operation{normalization}
+			\operation{get\_intensity\_headtail}
+			\operation{get\_intensity\_with\_pattern}
+		\end{class}
+		
+		
+		%\aggregation{Embryo}{external}{1}{Boundary}
+		%\aggregation{Embryo}{area}{1}{Testing Area}
+		\draw[umlcd style dashed line , ->](Testing Area)--node[above,sloped,black]{}(Embryo);
+		\draw[umlcd style dashed line , ->](Boundary)--node[above,sloped,black]{}(Embryo);
+		
+		\draw[umlcd style dashed line , ->](Boundary)|-node[above,sloped,black]{}(Rotation);
+		
+		\draw[umlcd style dashed line , ->](Mask)|-node[above,sloped,black]{}(Testing Area);
+		
+		\draw[umlcd style dashed line , ->](Filter)--node[above,sloped,black]{}(EntireCell);
+		
+		\draw[umlcd style dashed line , ->](Testing Area)--node[below,sloped,black]{}(Intensity);
+		
+		\draw[umlcd style dashed line] (2,2)--(2,-18);
+		
+	\end{tikzpicture}
 	
-		\item \textbf{drawing}: this class provides some methods for viewing graphically the data. Methods have no returns type.
-	\end{itemize}
+	\end{small}
+	\end{changemargin}
+	\end{minipage}
+	
+	
+	
+	
+	
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%
-
+	\newpage
 	\section{Schedule}
 	In total 8 weeks.
 	
