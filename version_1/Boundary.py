@@ -8,6 +8,12 @@ Created on Sun Dec 16 14:45:12 2018
 import skimage.measure
 import skimage.filter
 import numpy as np
+import math
+import scipy, scipy.interpolate
+import numpy.fft
+import scipy.signal
+from sklearn.decomposition import PCA
+
 from Embryo import *
 
 class Boundary(object):
@@ -16,6 +22,7 @@ class Boundary(object):
         
         self.head = None
         self.tail = None
+        self.orientation = 0
         
         # boundary curve is a array of tuples
         self.boundary_curve = None
@@ -25,9 +32,19 @@ class Boundary(object):
         self.set_ref_image(data)
         
         # private variables
-        self.__polyfit_degree = 4
-        self.__polyfit_width = 20
         self.__curvature = None
+        self.__fft_approx_order = 20
+        self.__cgx = 0
+        self.__cgy = 0
+        self.__central_gravity = None
+        
+        # Principle component analysis
+        self.__pca = None
+        self.__pca_major_axis = 0
+        self.__pac_minor_axis = 0
+        self.__pca_center = None
+        self.__pca_angles = np.array([0, math.pi])
+        self.__pca_orientation = 0
         
    
     
@@ -67,48 +84,145 @@ class Boundary(object):
         else:
             assert('No boundaries are detected in the reference image')
         
-    def detect_convex_hull(self):
-        threshold = skimage.filters.threshold_otsu(self.ref_image)  
-        convex_hull = skimage.morphology.convex_hull(self.ref_image > threshold)
-        contours = skimage.measure.find_contours(convex_hull, level = 0)
+        
+        
+    def detect_convex_hull(self, threshold=None):
+        if threshold is None:
+            threshold = skimage.filters.threshold_otsu(self.ref_image)
+        self.convex_hull = skimage.morphology.convex_hull(self.ref_image > threshold)
+        contours = skimage.measure.find_contours(self.convex_hull, level = 0)
         self.convex_contour = contours[0]
-        
     
-    # a polynomail is represented as an np array with coefficient from high to low    
-    def poly_dev(poly, dev_n):
-        if dev_n ==0:
-            return poly[:]
-        elif dev_n > len(poly):
-            return np.array([])
-        elif dev_n < 0:
-            raise ValueError("negative derivative")
-        else:
-            degree= len(poly) -1
-            result = np.zeros(degree+1 - dev_n)
-            result[:] = poly[:-dev_n]
-            for i in range(len(result)):
-                for exponent in range(degree - i, degree - dev_n - i, -1):
-                    result[i] *= exponent
-            return result
-        
-    def poly_eval(polynomial, x):
-         return sum(coef * x**exp for exp, coef in enumerate(reversed(polynomial)))
-            
     
-    def compute_curvature(self):
-    # compute the curvature for a given boundary curve
-    # we use a polynonmial to fit the local boundary curve
-        bd_x = self.boundary_curve[:,0]
-        bd_y = self.boundary_curve[:,1]
-        half_width = np.floor( self.__polyfit_width / 2)
-        self.__curvature = np.zeros(len(self.boundary_curve))
+    
+    def compute_angle(self, point, origin=(0,0)):
+        return np.angle( (point[0] - origin[0] ) + 1j * (point[1] - origin[1]) )
+    
+    def transform_polar_to_cartesian(self, angle, distance, origin=(0,0)):
+        x = origin[0] + distance * math.cos(angle)
+        y = origin[1] + distance * math.sin(angle)
+        return np.array([x,y])
+  
+    def detect_gravity_central(self):
+        threshold = skimage.filters.threshold_otsu(self.ref_image)   
+        bw_image = self.ref_image > threshold
+        self.detect_convex_hull(threshold)
         
-        bd_length= len(self.boundary_curve)
+        # the central of gravity is determined from the convex_hull
+        cgx = np.sum ( np.arange(0, self.ref_image.shape[1]) * np.sum(bw_image, axis = 0) ) / np.sum(bw_image)
+        cgy = np.sum ( np.arange(0, self.ref_image.shape[0]) * np.sum(bw_image, axis = 1) ) / np.sum(bw_image)
+        self.__cgx, self.__cgy = np.round(cgx), np.round(cgy)
+        self.__central_gravity = np.array([self.__cgx, self.__cgy])
+   
+    
+    def detect_head_tail(self):
+    # compute the curvature for the convex contour of referenced image
+    # we transform boundary_curve into polar coordinates and use FFT to fit the curve
+        self.detect_gravity_central()
+        
+        x = self.convex_contour[:,1]
+        y = self.convex_contour[:,0]
+        
+        complex_bd_points = (x - self.__cgx) + 1j * (y - self.__cgy)
+        angles = np.angle(complex_bd_points)
+        distances = np.absolute(complex_bd_points)
+        sortidx = np.argsort( angles )
+        angles = angles[ sortidx ]
+        distances = distances[ sortidx ]
+        
+        # copy first and last elements with angles wrapped around. needed so can interpolate over full range -pi to pi
+        angles = np.hstack(([ angles[-1] - 2*math.pi ], angles, [ angles[0] + 2*math.pi ]))
+        distances = np.hstack(([distances[-1]], distances, [distances[0]]))
+        
+        # interpolate to evenly spaced angles
+        f = scipy.interpolate.interp1d(angles, distances, 'linear')
+        angles_uniform = scipy.linspace(-math.pi, math.pi, num=1000, endpoint=False) 
+        distances_uniform = f(angles_uniform)
+
+
+        # fft and inverse fft
+        fft_coeffs = numpy.fft.rfft(distances_uniform)
+        # zero out all but lowest 20 coefficients
+        fft_coeffs[self.__fft_approx_order :] = 0
+        distances_fit = numpy.fft.irfft(fft_coeffs)
+        
+        r = distances_fit
+        r_prime = np.gradient(r, angles_uniform)
+        r_prime2 = np.gradient(r_prime, angles_uniform)
+        
+        self.__curvature = np.divide ( (np.abs(r**2 + 2 * r_prime**2- r * r_prime2) ) **2,
+                                        np.power( (r**2 + r_prime**2), 1.5) )
+        
         
 
-    def detect_head(self):
-        pass
-    
-    def detect_tail(self):
-        pass
+        # find the peaks in curvature 
+        peaks, _ = scipy.signal.find_peaks(self.__curvature, height = np.mean(self.__curvature) )
+        peaks_idx = np.argsort(self.__curvature[peaks])
+        peaks_idx = np.flip(peaks_idx)
+        self.__peaks = peaks[peaks_idx]
         
+        head_idx = peaks[0]
+        tail_idx = peaks[2]
+        
+        head_angle = angles_uniform[head_idx]
+        head_distance = distances_fit[head_idx]
+        tail_angle = angles_uniform[tail_idx]
+        tail_distance = distances_fit[tail_idx]
+        
+        self.head = self.transform_polar_to_cartesian(head_angle, head_distance, self.__central_gravity)
+        self.tail = self.transform_polar_to_cartesian(tail_angle, tail_distance, self.__central_gravity)
+        
+        self.orientation = self.compute_angle(self.head, self.__central_gravity)
+        
+    
+    def PCA_orientation(self):
+        
+        threshold = skimage.filter.threshold_otsu(self.ref_image)
+        bw_image = self.ref_image > threshold
+        
+        x = []
+        y = []
+        
+        for i in range(bw_image.shape[0]):
+            for j in range(bw_image.shape[1]):
+                if bw_image[i,j] :
+                    x.append(j)
+                    y.append(i)
+        
+        data = np.column_stack( (x,y))
+  
+        # fit a PCA model 
+        self.__pca = PCA(n_components=2)
+        self.__pca.fit(data)
+        
+        # pca gravity center
+        self.__pca_center = self.__pca.mean_
+        
+        # pca vectors
+        if self.__pca.explained_variance_[0] > self.__pca.explained_variance_[1]:
+            self.__pca_major_axis = self.__pca.components_[0]
+            self.__pca_minor_axis = self.__pca.components_[1]
+        else:
+            self.__pca_major_axis = self.__pca.components_[1]
+            self.__pca_minor_axis = self.__pca.components_[0]
+        
+        #pca angle
+        self.__pca_angles = np.array([ self.compute_angle(self.__pca_major_axis), 
+                                      self.compute_angle(self.__pca_minor_axis)])
+        self.__pca_orientation = self.__pca_angles[0]
+    
+    
+    
+    def PCA_head(self, curve):
+        diff_angle = math.inf        
+        for point in curve:
+            angle = self.compute_angle(point, self.__pca_center)
+            if np.abs(angle - self.__pca_orientation) < diff_angle:
+                diff_angle = np.abs(angle - self.__pca_orientation)
+                self.__pca_head = point
+                
+        
+        
+    
+        
+                    

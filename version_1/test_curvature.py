@@ -462,3 +462,27 @@ v2 = pca.components_[1]
 pca_angle_2= np.angle(v2[0] - 1j * v2[1])
 
 print('pca angles: ', pca_angle_1, pca_angle_2)
+
+
+#%%
+  
+# a polynomail is represented as an np array with coefficient from high to low    
+def poly_dev(poly, dev_n):
+    if dev_n ==0:
+        return poly[:]
+    elif dev_n > len(poly):
+        return np.array([])
+    elif dev_n < 0:
+        raise ValueError("negative derivative")
+    else:
+        degree= len(poly) -1
+        result = np.zeros(degree+1 - dev_n)
+        result[:] = poly[:-dev_n]
+        for i in range(len(result)):
+            for exponent in range(degree - i, degree - dev_n - i, -1):
+                result[i] *= exponent
+        return result
+    
+def poly_eval(polynomial, x):
+     return sum(coef * x**exp for exp, coef in enumerate(reversed(polynomial)))
+        
