@@ -6,6 +6,7 @@ from Boundary import *
 class Rotate(object):
 
     def __init__(self, data=None, boundary=None):
+        # initialize angle
         self.angle = 0
         
         # ref_image is a 2d array
@@ -17,7 +18,7 @@ class Rotate(object):
         
         # boundary is of Boundary type
         self.boundary = None
-    
+        
     
     def set_ref_image(self, data):
         if data is None:
@@ -45,11 +46,15 @@ class Rotate(object):
     def set_angle(self, boundary):
         self.angle = boundary.orientation
 
-    def rotate_embryo(self, boundary):
+    def rotate_embryo(self, boundary= None, mode='curvature'):
+        if self.boundary is not None:
+            self.set_boundary(boundary)
+            self.set_angle(boundary)
+            
         self.rotated_image = skimage.transform.rotate(self.ref_image, 
                                                       self.angle,
                                                       resize = False,
-                                                      center = self.boundary.get_center())
+                                                      center = self.boundary.get_center(mode))
         return Embryo(self.rotated_image)
 
     def get_rotated_image(self):
