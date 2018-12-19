@@ -8,6 +8,7 @@ Created on Fri Dec  7 15:57:22 2018
 
 import skimage.io
 import skimage.color
+import skimage.segmentation
 import numpy as np
 
 #%%
@@ -38,11 +39,14 @@ class Embryo(object):
     def read_from_array(self, my_image = None):
         # set raw_image from a 2d array
         """ Question: when array is passed by value as a function argument, 
-            why doesn't the change of input effect the assignment operator = ?
+            why doesn't the change of input effects the assignment operator = ?
         """
         if (my_image is not None):
             self.raw_image = my_image
             self.bk_image = my_image
+        else:
+            assert('Image is not provided.')
+
         
     def init_raw_image(self, data):
         if (type(data) is str and data != ''):
@@ -75,4 +79,7 @@ class Embryo(object):
         # set gene name
         if (name != ''):
             self.gene_name = name
+            
+    def clear_border(self):
+        self.raw_image = skimage.segmentation.clear_border(self.raw_image)
     

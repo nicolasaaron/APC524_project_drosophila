@@ -167,12 +167,43 @@ appr_hand = approximate_polygon(new_hand, tolerance=0.02)
 
 print("Number of coordinates:", len(hand), len(new_hand), len(appr_hand))
 
-fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(9, 4))
+fig, ax = plt.subplots(figsize=(10, 10))
 
-ax1.plot(hand[:, 0], hand[:, 1])
+ax.plot(hand[:, 0], hand[:, 1])
 
-ax1.plot(new_hand[:, 0], new_hand[:, 1])
-ax1.plot(appr_hand[:, 0], appr_hand[:, 1])
+ax.plot(new_hand[:, 0], new_hand[:, 1])
+ax.plot(appr_hand[:, 0], appr_hand[:, 1])
+
+plt.show()
+
+
+#%% create two ellipses in image
+img = np.zeros((800, 800), 'int32')
+rr, cc = ellipse(250, 250, 180, 230, img.shape)
+img[rr, cc] = 1
+rr, cc = ellipse(600, 600, 150, 90, img.shape)
+img[rr, cc] = 1
+
+img[:, :100] = 0
+img[700:, :] = 0
+
+fig, ax = plt.subplots(figsize=(10, 10))
+ax.imshow(img)
+
+# approximate / simplify coordinates of the two ellipses
+for contour in find_contours(img, 0):
+    
+    coords = approximate_polygon(contour, tolerance=2.5)
+    ax.plot(coords[:, 1], coords[:, 0], '-r', linewidth=2)
+    
+    coords2 = approximate_polygon(contour, tolerance=39.5)
+    ax.plot(coords2[:, 1], coords2[:, 0], '-g', linewidth=2)
+    
+    print("Number of coordinates:", len(contour), len(coords), len(coords2))
+    
+#ax.axis((0, 800, 0, 800))
+
+plt.show()
 
 
 #%%
@@ -196,6 +227,9 @@ rr,cc = ellipse(600, 600, 200, 400)
 image[rr,cc] = 1
 
 image = rotate(image, angle = -30, order =0)
+
+image[:, 600:] = 0
+
 
 label_img = label(image)
 regions = regionprops(label_img)
@@ -269,6 +303,89 @@ bx = (minc, maxc, maxc, minc, minc)
 by = (minr, minr, maxr, maxr, minr)
 ax.plot(bx, by, '-y', linewidth=2.5)
 
+#%%
+import skimage.segmentation
+
+ref_img = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 5, 5, 5, 0, 0],
+                    [0, 1, 1, 1, 0, 5, 5, 5, 0, 0],
+                    [0, 1, 1, 1, 0, 5, 5, 5, 0, 0],
+                    [0, 1, 1, 1, 0, 5, 5, 5, 0, 0],
+                    [0, 0, 0, 0, 0, 5, 5, 5, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.uint8)
+
+plt.imshow(ref_img)
+plt.show()
 
 
+bd1 = skimage.segmentation.find_boundaries(ref_img, mode='thick').astype(np.uint8)
 
+plt.imshow(bd1)
+plt.show()
+
+
+inner = skimage.segmentation.find_boundaries(ref_img, mode='inner').astype(np.uint8)
+
+plt.imshow(inner)
+plt.show()
+
+outer = skimage.segmentation.find_boundaries(ref_img, mode='outer').astype(np.uint8)
+
+plt.imshow(outer)
+plt.show()
+
+
+label_img = skimage.measure.label(inner)
+regions = skimage.measure.regionprops(label_img)
+
+for props in regions:
+    print('label of region', props.label)
+    print('area', props.area)
+    print('convex_area', props.convex_area)
+    print('area/bbox ratio', props.extent)
+    
+    temp_img = np.zeros(ref_img.shape)
+    temp_img[props.coords[:,0], props.coords[:,1]] = 1
+    plt.imshow(temp_img)
+    plt.show()
+    
+#%% test clean boarder
+
+
+ref_img = np.array([[0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [0, 0, 0, 0, 0, 5, 5, 0, 0, 1],
+                    [0, 1, 1, 1, 0, 5, 5, 5, 0, 1],
+                    [0, 1, 1, 1, 0, 5, 5, 5, 0, 0],
+                    [0, 1, 1, 1, 0, 5, 5, 5, 0, 0],
+                    [0, 0, 0, 0, 0, 5, 5, 5, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.uint8)
+
+plt.imshow(ref_img)
+plt.show()
+
+new_img = skimage.segmentation.clear_border(ref_img)
+
+plt.imshow(new_img)
+plt.show()
+
+#%%
+print(np.max(gene1.raw_image) )
+plt.imshow(gene1.raw_image)
+plt.show()
+
+threshold = skimage.filter.threshold_otsu(gene1.raw_image)
+bw_image = gene1.raw_image > threshold
+plt.imshow(bw_image)
+plt.show()
+
+
+new_image = skimage.segmentation.clear_border(bw_image)
+plt.imshow(new_image)
+plt.show()
+
+
+    
