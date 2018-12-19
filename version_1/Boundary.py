@@ -106,13 +106,14 @@ class Boundary(object):
     def detect_gravity_central(self):
         threshold = skimage.filters.threshold_otsu(self.ref_image)   
         bw_image = self.ref_image > threshold
+        
         self.detect_convex_hull(threshold)
         
         # the central of gravity is determined from the convex_hull
         cgx = np.sum ( np.arange(0, self.ref_image.shape[1]) * np.sum(bw_image, axis = 0) ) / np.sum(bw_image)
         cgy = np.sum ( np.arange(0, self.ref_image.shape[0]) * np.sum(bw_image, axis = 1) ) / np.sum(bw_image)
         self.__cgx, self.__cgy = np.round(cgx), np.round(cgy)
-        self.__central_gravity = np.array([self.__cgx, self.__cgy])
+        self.central_gravity = np.array([self.__cgx, self.__cgy])
    
     
     def detect_head_tail(self):
@@ -210,6 +211,8 @@ class Boundary(object):
         self.__pca_angles = np.array([ self.compute_angle(self.__pca_major_axis), 
                                       self.compute_angle(self.__pca_minor_axis)])
         self.__pca_orientation = self.__pca_angles[0]
+        
+        self.PAC_head(self.convex_contour)
     
     
     
@@ -220,6 +223,15 @@ class Boundary(object):
             if np.abs(angle - self.__pca_orientation) < diff_angle:
                 diff_angle = np.abs(angle - self.__pca_orientation)
                 self.__pca_head = point
+                
+                
+    def get_center(self, method='curvature'):
+        if method == 'curvature':
+            return self.__central_gravity
+        elif method =='pca':
+            return self.__pca_center
+        else:
+            return np.round(self.ref_image.shape / 2)
                 
         
         
