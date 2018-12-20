@@ -39,11 +39,12 @@ egg1 = embryo_list[0]
 print(egg1.gene_name)
 print(egg1.gene_position)
 
-plt.imshow(egg1.gray_image)
+plt.imshow(egg1.gray_image, 'gray')
 plt.show()
 
 plt.imshow(egg1.bk_image)
 plt.show()
+
 
 #%%
 """
@@ -141,12 +142,48 @@ print('orientation', bd.get_orientation(mode))
 bd.view_head_tail_pca()
 
 
-#%% Test Rotation Class: rotate randomly the inpur images
+#%% 
+
+"""
+Test Rotation Class: rotate randomly the inpur images
+"""
 
 # init a rotation operation for egg1
 r = Rotation(egg1)
 
-angle = math.pi/6
+angle = math.pi / 4
+print(angle)
+
 r.set_angle(angle)
 
-r.rotate_embryo(egg1, angle=angle)
+rotated_embryo = r.rotate_embryo(egg1, angle=angle)
+egg1.view()
+rotated_embryo.view()
+
+# test get_rotated_image
+rotated_egg = Embryo(r.get_rotated_image())
+rotated_egg.view()
+
+#%%
+# rotate back
+mode = 'curvature'
+#mode = 'pca'
+bd = Boundary(rotated_egg)
+
+bd.detect_head_tail(mode)
+print(-bd.get_orientation(mode))
+
+rotated_egg2 = r.rotate_embryo(rotated_embryo, boundary=bd)
+rotated_egg2.view()
+
+rotated_egg3 = r.rotate_embryo(rotated_egg2, bd_mode = 'pca')
+print(r.angle)
+rotated_egg3.view()
+
+rotated_egg4 = r.rotate_embryo(rotated_egg3, bd_mode = 'pca')
+print(r.angle)
+rotated_egg4.view()
+
+#%%
+
+

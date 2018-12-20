@@ -2,11 +2,11 @@
 """
 Created on Sun Dec 16 14:45:12 2018
 
-@author: iris
+@author: zongjun
 """
 
 import skimage.measure
-import skimage.filter
+import skimage.filters
 import numpy as np
 import math
 import scipy, scipy.interpolate
@@ -70,7 +70,7 @@ class Boundary(object):
             self.ref_image = data
         elif (isinstance(data, Embryo)):
             # if data is an Embryo object
-            self.ref_image = data.raw_image.copy()
+            self.ref_image = np.copy(data.raw_image)
         else:
             print('unknown reference image data type')
             #pass
@@ -200,7 +200,6 @@ class Boundary(object):
         self.tail = self.transform_polar_to_cartesian(tail_angle, tail_distance, self.__central_gravity)
         
         self.orientation = self.compute_angle(self.head, self.__central_gravity)
-     
         
         
         
@@ -209,7 +208,7 @@ class Boundary(object):
         
         self.detect_boundary()
         
-        threshold = skimage.filter.threshold_otsu(self.ref_image)
+        threshold = skimage.filters.threshold_otsu(self.ref_image)
         bw_image = self.ref_image > threshold
         
         x = []
@@ -284,7 +283,7 @@ class Boundary(object):
         elif (method =='pca') and (self.__pca_center is not None):
             return self.__pca_center
         else:
-            return np.round(self.ref_image.shape / 2)
+            return np.round(np.array( self.ref_image.shape) / 2)
         
     def get_orientation(self, method ='curvature'):
         if (method == 'curvature'):
@@ -332,7 +331,7 @@ class Boundary(object):
     def view_boundary_curve(self, figsize=(10,10)):
         if self.boundary_curve is not None:
             fig,ax =plt.subplots(figsize = figsize)            
-            ax.imshow(self.ref_image)
+            ax.imshow(self.ref_image,'gray')
             ax.plot(self.boundary_curve[:,1], self.boundary_curve[:,0], color = 'r')
             plt.show()
         else:
@@ -341,7 +340,7 @@ class Boundary(object):
     def view(self, figsize = (10,10) ):
         if self.ref_image is not None:
             fig,ax =plt.subplots(figsize = figsize)
-            ax.imshow(self.ref_image)
+            ax.imshow(self.ref_image, 'gray')
             plt.show()
         else:
             print('data is missing')
@@ -352,7 +351,7 @@ class Boundary(object):
         x_fit = self.__central_gravity[0] + self.__distances_cur * np.cos(self.__angles_cur)
         y_fit = self.__central_gravity[1] - self.__distances_cur * np.sin(self.__angles_cur)
 
-        plt.imshow(self.ref_image)
+        plt.imshow(self.ref_image, 'gray')
         plt.plot(x_fit, y_fit, color='b')
         plt.plot(self.head[0], self.head[1], marker='x', color = 'orange')
         plt.plot(self.tail[0], self.tail[1], marker='x', color = 'orange')
@@ -367,7 +366,7 @@ class Boundary(object):
         arrowprops=dict(arrowstyle='->',linewidth=2,shrinkA=0, shrinkB=0)
 
         fig,ax =plt.subplots(figsize = figsize)
-        ax.imshow(self.ref_image)        
+        ax.imshow(self.ref_image, 'gray')        
         for length, vector in zip(self.__pca.explained_variance_, self.__pca.components_):
             v = vector*2 * np.sqrt(length)
             ax.annotate('', self.__pca.mean_ + v, self.__pca.mean_, arrowprops= arrowprops)    

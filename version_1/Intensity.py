@@ -2,7 +2,7 @@
 """
 Created on Thu Dec 20 10:18:13 2018
 
-@author: iris
+@author: zongjun
 """
 
 import scipy.signal

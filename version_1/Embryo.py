@@ -2,7 +2,7 @@
 """
 Created on Fri Dec  7 15:57:22 2018
 
-@author: iris
+@author: zongjun
 """
 
 
@@ -36,7 +36,7 @@ class Embryo(object):
     def read_from_filename(self, filename=''):
         """ add checking exisitng filename """
         self.raw_image = skimage.io.imread(filename)
-        self.bk_image = self.raw_image.copy()
+        self.bk_image = np.copy( self.raw_image )
         
     
     def read_from_array(self, my_image = None):
@@ -45,8 +45,8 @@ class Embryo(object):
             why doesn't the change of input effects the assignment operator = ?
         """
         if (my_image is not None):
-            self.raw_image = my_image.copy()
-            self.bk_image = my_image.copy()
+            self.raw_image = np.copy( my_image)
+            self.bk_image =np.copy( my_image)
         else:
             print('Image is not provided.')
 
@@ -62,9 +62,9 @@ class Embryo(object):
     def copy(self):
         result = Embryo()
         result.gene_name = self.gene_name
-        result.raw_image = self.raw_image.copy()
-        result.gray_image = self.gray_image.copy()
-        result.bk_image = self.bk_image.copy()
+        result.raw_image = np.copy( self.raw_image)
+        result.gray_image = np.copy( self.gray_image)
+        result.bk_image = np.copy( self.bk_image)
         return result
     
     
@@ -72,7 +72,7 @@ class Embryo(object):
         # create a gray scale image, also change raw image to gray scale
         if (self.raw_image is not None):
             self.raw_image = skimage.color.rgb2gray(self.raw_image)
-            self.gray_image = self.raw_image.copy()
+            self.gray_image = np.copy( self.raw_image )
         
     def set_gene_name(self, name = ''):
         # set gene name
@@ -93,7 +93,7 @@ class Embryo(object):
     def view(self, figsize = (10,10) ):
         if self.raw_image is not None:
             fig,ax =plt.subplots(figsize = figsize)
-            ax.imshow(self.raw_image)
+            ax.imshow(self.raw_image, 'gray')
             plt.show()
         else:
             print('data is missing')
