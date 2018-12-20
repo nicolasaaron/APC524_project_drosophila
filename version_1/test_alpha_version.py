@@ -185,5 +185,28 @@ print(r.angle)
 rotated_egg4.view()
 
 #%%
+"""
+Test Polygon class
+"""
+#egg1.view()
 
+testing_img = Polygon(egg1)
+testing_img.view()
+
+print(testing_img.ref_image_dim)
+
+testing_img.detect_area()
+testing_img.view_area()
+
+#%%
+testing_img = Polygon(egg1)
+testing_img.view()
+
+mode = 'curvature'
+#mode = 'pca'
+bd = Boundary(egg1)
+bd.detect_head_tail(mode)
+
+testing_img.detect_area(boundary = bd)
+testing_img.view_area()
 

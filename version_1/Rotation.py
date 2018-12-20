@@ -83,7 +83,7 @@ class Rotation(object):
             
         
         if center_mode == 'simple':
-            center = np.round(np.array(self.ref_image.shape) / 2)       
+            center = np.round(np.array(self.ref_image.shape) / 2).astype(int)       
         elif center_mode =='boundary':
             center = self.boundary.get_center(self.boundary.mode)
         

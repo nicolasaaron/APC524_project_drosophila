@@ -322,7 +322,14 @@ class Boundary(object):
         else:
             print('peak array is None')
         
-            
+    def get_approx_curve(self, mode = 'curvature'):
+        if mode == 'curvature':
+            return self.convex_contour
+        elif mode == 'pca':
+            return self.boundary_curve
+        else:
+            print('method is not recognized')
+            return None
      
         
         

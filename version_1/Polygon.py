@@ -11,7 +11,8 @@ from Boundary import *
 
 import numpy as np
 import math
-#from PIL import Image, ImageDraw
+import matplotlib.pyplot as plt
+
 import skimage.morphology
 import skimage.measure
 
@@ -19,7 +20,7 @@ import skimage.measure
 class Polygon(TestingArea):
     
     def __init__(self, data = None, boundary = None, num_vertices=4, vertices = None):
-        super()
+        super().__init__()
         
         self.area_type="POLYGON"
         self.head_dropoff_threshold = 0.1
@@ -30,8 +31,7 @@ class Polygon(TestingArea):
         self.set_ref_image(data)
         
         # set boundary
-        self.set_bounadry(boundary)
-        
+        self.set_boundary(boundary)        
         
         #(optional)
         # set default number of vertices of a polygone, the default shap is a rectangle
@@ -41,6 +41,14 @@ class Polygon(TestingArea):
         
         # private variable
         self.__regions = None
+        self.__main_region = None
+        self.__embryo_bbox = None
+        
+        #area detection with boundary
+        self.__tail_poly_vertice_upper = None
+        self.__tail_poly_vertice_lower = None
+        self.__head_poly_vertice_upper = None
+        self.__head_poly_vertice_lower = None
 
         
 #method for initialization    
@@ -49,17 +57,17 @@ class Polygon(TestingArea):
             print('reference image information has not yet been provided')
             self.ref_image = None
             self.ref_image_dim = None
-        elif ( (type(data) is np.ndarray) and (len(data.shape) == 1) ):
+        elif ( isinstance(data, np.ndarray) and (len(data.shape) == 1) ):
             # data indicate the dimension of referenced image
-            self.ref_image_dim = data
+            self.ref_image_dim = np.copy(data)
             self.ref_image = np.zeros(self.ref_image_dim, dtype=np.double)
-        elif ( (type(data) is np.ndarray) and (len(data.shape) == 2) ):
+        elif ( isinstance(data, np.ndarray) and (len(data.shape) == 2) ):
             # data is an image
-            self.ref_image = data
+            self.ref_image = np.copy(data)
             self.set_ref_image_dim()
-        elif (type(data) is Embryo):
+        elif isinstance(data, Embryo):
             # data is an Embryo object
-            self.ref_image = data.raw_image.copy
+            self.ref_image = np.copy( data.raw_image)
             self.set_ref_image_dim()
         else:        
             print('data must have type numpy.ndarry or Embryo')
@@ -68,7 +76,7 @@ class Polygon(TestingArea):
         
     def set_ref_image_dim(self):
         if (self.ref_image is not None):
-            self.ref_image_dim = self.ref_image.shape
+            self.ref_image_dim = np.array( self.ref_image.shape )
         else:
             print('reference image size is not known')
             
@@ -92,11 +100,12 @@ class Polygon(TestingArea):
         if boundary is None:
             if (self.boundary is None):
                 """ need to check whether raw_image is avaliable """
+                assert self.ref_image is not None, "reference image is empty"
                 self.detect_area_from_image()
             else:
                 self.detect_area_with_boundary(self.boundary)
         else:
-            """ need to check whether boundary is valid """
+            """ Todo: need to check whether boundary is valid """
             self.detect_area_with_boundary(boundary)
             
     def vertex2poly(self):
@@ -131,8 +140,8 @@ class Polygon(TestingArea):
         #    pass  
     
     def check_vertices(self):
-        """ check validity of vertices"""
-        pass;
+        """ Todo: check validity of vertices"""
+        pass
         
         
     def load_ref_image(self, data = None, filename=''):
@@ -141,7 +150,7 @@ class Polygon(TestingArea):
         elif (filename != ''):
             self.ref_image.read_from_filename(filename)            
         else:
-            pass
+            print('error for loading images dircetly')
     
         
 # methodes for computation    
@@ -159,7 +168,7 @@ class Polygon(TestingArea):
         denoised_image = self.ref_image >= threshold
         
         # find the convex hull image of the denoised image
-        convex_hull = skimage.morphology.convex_hull(denoised_image)
+        convex_hull = skimage.morphology.convex_hull_image(denoised_image)
         
         # find the regions using built-in label and regionprops functions
         label_img = skimage.measure.label(convex_hull)
@@ -167,7 +176,7 @@ class Polygon(TestingArea):
         
         #find out the largest region
         if len(self.__regions) ==1 :
-            self.__main_region = self.__regions
+            self.__main_region = self.__regions[0]
         elif len(self.__regions) > 1:
             temp_area = 0
             for rg in self.__regions:
@@ -181,6 +190,7 @@ class Polygon(TestingArea):
         #crop __main_region with head and tail dropoff threshold
         """ suppose that the ref_image is horizontal after rotation
             suppose tail on the left, head on the right 
+            Todo: justify assumptions
         """
     
         # step1: find the bounding box of __cell_region
@@ -189,22 +199,22 @@ class Polygon(TestingArea):
         # step2: find the intersection points with boundary using dropoff threshold
         self.__embryo_bbox = np.array([(minc, minr), (minc, maxr),(maxc, maxr),(maxc, minr)])
         
-        tail_dropoff_pos_col = np.round( minc + self.head_dropoff_threshold * (maxc - minc) )
-        head_dropoff_pos_col = np.round( maxc - self.head_dropoff_threshold * (maxc - minc) )
+        tail_dropoff_pos_col = np.round( minc + self.tail_dropoff_threshold * (maxc - minc) ).astype(int)
+        head_dropoff_pos_col = np.round( maxc - self.head_dropoff_threshold * (maxc - minc) ).astype(int)
         
         # using denoised_image
         head_minr = 0
         while denoised_image[head_minr,head_dropoff_pos_col] == 0:
             head_minr +=1
-        head_maxr = self.ref_image_dim[1]
+        head_maxr = self.ref_image_dim[0]-1
         while denoised_image[head_maxr, head_dropoff_pos_col] == 0:
             head_maxr -=1
         
         tail_minr = 0
-        while denoised_image[tail_minr,head_dropoff_pos_col] == 0:
+        while denoised_image[tail_minr, tail_dropoff_pos_col] == 0:
             tail_minr +=1
-        tail_maxr = self.ref_image_dim[1]
-        while denoised_image[tail_maxr, head_dropoff_pos_col] == 0:
+        tail_maxr = self.ref_image_dim[0]-1
+        while denoised_image[tail_maxr, tail_dropoff_pos_col] == 0:
             tail_maxr -=1
         
         
@@ -217,15 +227,13 @@ class Polygon(TestingArea):
         
         
     
-    def coordinate_shift(start, length, angle):
+    def coordinate_shift(self, start, length, angle):
         new_row = start[0] + length * math.cos(angle)
-        new_col = start[1] + length * math.sin(angle)        
+        new_col = start[1] - length * math.sin(angle)        
         return np.array([new_row, new_col])
     
-    def angle_of_a_line(start, end):
-        # return an anple between a line that passes the start and the end points to the horizonal line
-        # the angle output is in radius between -pi/2 to pi/2
-        return math.atan( (end[1]- start[1]) / (end[0] - start[0]) )
+    def compute_angle(self, point, origin=(0,0)):
+        return np.angle( (point[0] - origin[0] ) - 1j * (point[1] - origin[1]) )
         
     
     def detect_area_with_boundary(self, boundary):      
@@ -233,21 +241,23 @@ class Polygon(TestingArea):
         """
             the major axis that link head and tail may not be level
             assume that the tail is on the left hand side of the head
+            Todo: justify assumptions
         """
         #update boundary
         self.set_boundary(boundary)
         
         # step 1: find the line connected head and tail
+        head = boundary.get_head(boundary.mode)
+        tail = boundary.get_tail(boundary.mode)
         
-        major_axis_angle = self.angle_of_a_line( boundary.tail, boundary.head) 
-        major_axis_length = math.sqrt( (boundary.head[1]- boundary.tail[1])**2 \
-                                      +(boundary.head[0]- boundary.tail[0])**2)
+        major_axis_angle = self.compute_angle(head, tail) 
+        major_axis_length = math.sqrt( (head[1]- tail[1])**2 +(head[0]- tail[0])**2)
         # step 2: find cropping positions
-        tail_dropoff_pos = self.coordinate_shift(boundary.tail, \
+        tail_dropoff_pos = self.coordinate_shift(tail, \
                                                  major_axis_length * self.tail_dropoff_threshold, \
                                                  major_axis_angle) 
         
-        head_dropoff_pos = self.coordiante_shift(boundary.head, \
+        head_dropoff_pos = self.coordinate_shift(head, \
                                                  - major_axis_length * self.head_dropoff_threshold,\
                                                  major_axis_angle)
         
@@ -257,21 +267,32 @@ class Polygon(TestingArea):
             minor_axis_angle = major_axis_angle + math.pi / 2
         else:
             minor_axis_angle = major_axis_angle - math.pi / 2
+        
+        if minor_axis_angle > 0:
+            minor_axis_angle_prime = minor_axis_angle - math.pi
+        else:
+            minor_axis_angle_prime = minor_axis_angle + math.pi
+        
            
         # find the two vetices of polygone which are close to tail    
         min_diff_angle_0 = math.inf
         min_diff_angle_pi = math.inf
-        for point in boundary.boundary_curve:
+        
+        curve = boundary.get_approx_curve(boundary.mode)
+        
+        for (r,c) in curve:
             # compute the angle for the line connecting (bd_x, bd_y) and tail_dropoff_pos
-            bd_angle = self.angle_of_a_line( tail_dropoff_pos, point )
-            # diff_angle is range from (0, pi)
-            diff_angle = math.abs( bd_angle - minor_axis_angle)  
+            bd_angle = self.compute_angle( (c,r), tail_dropoff_pos )
+            
+            diff_angle = np.abs( bd_angle - minor_axis_angle)  
             if (diff_angle < min_diff_angle_0):
                 min_diff_angle_0 = diff_angle
-                pos_1 = point
-            if (math.abs(math.pi - diff_angle) < min_diff_angle_pi):
-                min_diff_angle_pi = math.abs(math.pi - diff_angle)
-                pos_2 = point
+                pos_1 = (r,c)
+                
+            diff_angle = np.abs(bd_angle - minor_axis_angle_prime )  
+            if (diff_angle < min_diff_angle_pi):
+                min_diff_angle_pi = diff_angle
+                pos_2 = (r,c)
                 
         if pos_1[0] < pos_2[0]:
             self.__tail_poly_vertice_upper = pos_1
@@ -283,17 +304,18 @@ class Polygon(TestingArea):
         # find the two vertices of polygone which are close to head
         min_diff_angle_0 = math.inf
         min_diff_angle_pi = math.inf
-        for point in boundary.boundary_curve:
-            # compute the angle for the line connecting (bd_x, bd_y) and tail_dropoff_pos
-            bd_angle = self.angle_of_a_line( head_dropoff_pos, point )
+        for (r,c) in curve:
+            # compute the angle for the line connecting (bd_x, bd_y) and head_dropoff_pos
+            bd_angle = self.compute_angle( (c,r), head_dropoff_pos )
             # diff_angle is range from (0, pi)
-            diff_angle = math.abs( bd_angle - minor_axis_angle)  
+            diff_angle = np.abs( bd_angle - minor_axis_angle)  
             if (diff_angle < min_diff_angle_0):
                 min_diff_angle_0 = diff_angle
-                pos_1 = point
-            if (math.abs(math.pi - diff_angle) < min_diff_angle_pi):
-                min_diff_angle_pi = math.abs(math.pi - diff_angle)
-                pos_2 = point
+                pos_1 = (r,c)
+            diff_angle = np.abs(bd_angle - minor_axis_angle_prime )  
+            if (diff_angle < min_diff_angle_pi):
+                min_diff_angle_pi = diff_angle
+                pos_2 = (r,c)
         
         if pos_1[0] < pos_2[0]:
             self.__head_poly_vertice_upper = pos_1
@@ -307,6 +329,9 @@ class Polygon(TestingArea):
                                   self.__tail_poly_vertice_lower, \
                                   self.__head_poly_vertice_lower, \
                                   self.__head_poly_vertice_upper])
+    
+        self.vertices = np.round(self.vertices).astype(int)
+        
         # creat area form vertices
         self.vertex2poly()
         
@@ -314,7 +339,26 @@ class Polygon(TestingArea):
      
         
         
+# methods for visualization
+    def view(self, figsize = (10,10) ):
+        if self.ref_image is not None:
+            fig,ax =plt.subplots(figsize = figsize)
+            ax.imshow(self.ref_image, 'gray')
+            plt.show()
+        else:
+            print('data is missing')
+    
+    def view_area(self, figsize = (10,10) ):
+        if self.area is not None:
+            fig,ax =plt.subplots(figsize = figsize)
+            ax.imshow(self.ref_image, 'gray')
+            ax.imshow(self.area * self.ref_image, cmap = 'jet', alpha = 0.1)
+            for vertex in self.vertices:
+                ax.plot(vertex[1], vertex[0], marker='x', markersize =15, color='orange')
             
+            plt.show()
+        else:
+            print('data is missing')
             
             
             
