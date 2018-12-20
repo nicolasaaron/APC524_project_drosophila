@@ -104,7 +104,7 @@ class Boundary(object):
     
     def transform_polar_to_cartesian(self, angle, distance, origin=(0,0)):
         x = origin[0] + distance * math.cos(angle)
-        y = origin[1] + distance * math.sin(angle)
+        y = origin[1] - distance * math.sin(angle)
         return np.array([x,y])
   
     def detect_gravity_central(self):
@@ -188,8 +188,8 @@ class Boundary(object):
         self.__peaks = peaks[peaks_idx]
         
         
-        head_idx = peaks[0]
-        tail_idx = peaks[2]
+        head_idx = self.__peaks[0]
+        tail_idx = self.__peaks[2]       
         
         head_angle = angles_uniform[head_idx]
         head_distance = distances_fit[head_idx]
@@ -251,13 +251,14 @@ class Boundary(object):
     def PCA_head_tail(self, curve):
         # find head position in the curve with PCA parameters
         diff_angle = math.inf 
-        result1 = []
+        head = []
+        tail = []
         
         for point in curve:
-            angle = self.compute_angle(point, self.__pca_center)
+            angle = self.compute_angle([point[1],point[0]], self.__pca_center)
             if np.abs(angle - self.__pca_orientation) < diff_angle:
                 diff_angle = np.abs(angle - self.__pca_orientation)
-                result1 = point
+                head = [point[1], point[0]]
                 
         # find tail position in the curve with PCA parameters
         diff_angle = math.inf
@@ -266,14 +267,13 @@ class Boundary(object):
         else:
             angle_tail = self.__pca_orientation + math.pi
         
-        result2 = []
         for point in curve:
-            angle = self.compute_angle(point, self.__pca_center)
+            angle = self.compute_angle([point[1],point[0]], self.__pca_center)
             if np.abs(angle - angle_tail) < diff_angle:
                 diff_angle = np.abs(angle - angle_tail)
-                result2 = point
+                tail = [point[1], point[0]]
         
-        return [result1, result2]
+        return [head, tail]
     
     
 
@@ -345,6 +345,33 @@ class Boundary(object):
             plt.show()
         else:
             print('data is missing')
+            
+    def view_head_tail_curvature(self, figsize = (10,10)):
+        fig,ax =plt.subplots(figsize = figsize)
+        
+        x_fit = self.__central_gravity[0] + self.__distances_cur * np.cos(self.__angles_cur)
+        y_fit = self.__central_gravity[1] - self.__distances_cur * np.sin(self.__angles_cur)
+
+        plt.imshow(self.ref_image)
+        plt.plot(x_fit, y_fit, color='b')
+        plt.plot(self.head[0], self.head[1], marker='x', color = 'orange')
+        plt.plot(self.tail[0], self.tail[1], marker='x', color = 'orange')
+        plt.plot(self.__central_gravity[0], self.__central_gravity[1], marker='x', color = 'orange')
+        
+        plt.plot((self.__central_gravity[0], self.head[0]),(self.__central_gravity[1], self.head[1]), color='green', linewidth = 2)
+        plt.plot((self.__central_gravity[0], self.tail[0]),(self.__central_gravity[1], self.tail[1]), color='green', linewidth = 2)
+        plt.plot((self.head[0], self.tail[0]),(self.head[1], self.tail[1]), color='red', linewidth = 2)
+        plt.show()
+        
+    def view_head_tail_pca(self, figsize = (10,10)):
+        arrowprops=dict(arrowstyle='->',linewidth=2,shrinkA=0, shrinkB=0)
+
+        fig,ax =plt.subplots(figsize = figsize)
+        ax.imshow(self.ref_image)        
+        for length, vector in zip(self.__pca.explained_variance_, self.__pca.components_):
+            v = vector*2 * np.sqrt(length)
+            ax.annotate('', self.__pca.mean_ + v, self.__pca.mean_, arrowprops= arrowprops)    
+        plt.show()
 
         
             

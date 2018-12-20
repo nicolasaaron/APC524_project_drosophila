@@ -85,7 +85,7 @@ bd.detect_boundary()
 bd.view_boundary_curve()
 
 #%%
-#detect head and tail
+#debug: detect head and tail
 mode ='curvature'
 bd.detect_head_tail(mode)
 
@@ -94,6 +94,8 @@ print('tail:', bd.get_tail(mode))
 print('center:', bd.get_center(mode))
 print('orientation', bd.get_orientation(mode))
 
+bd.view_head_tail_curvature()
+ 
 curvature, angles, distances = bd.get_curvature_info()
 peaks = bd.get_peaks()
 
@@ -107,8 +109,36 @@ plt.plot(angles, curvature)
 plt.plot(angles[peaks], curvature[peaks], 'x', color='r')
 plt.show()
 
+head_idx = peaks[0]
+tail_idx = peaks[2]       
 
+head_angle = angles[head_idx]
+head_distance = distances[head_idx]
+tail_angle = angles[tail_idx]
+tail_distance = distances[tail_idx]
 
+head = bd.transform_polar_to_cartesian(head_angle, head_distance, bd.get_center(mode))
+tail = bd.transform_polar_to_cartesian(tail_angle, tail_distance, bd.get_center(mode))
+
+orientation = bd.compute_angle(head, bd.get_center(mode))
+
+print(head)
+print(tail)
+print(orientation)
+
+        
+
+#%%
+#debug: pca method
+mode = 'pca'
+bd.detect_head_tail(mode)
+
+print('head:', bd.get_head(mode))
+print('tail:', bd.get_tail(mode))
+print('center:', bd.get_center(mode))
+print('orientation', bd.get_orientation(mode))
+
+bd.view_head_tail_pca()
 
 
 #%% Test Rotation Class: rotate randomly the inpur images

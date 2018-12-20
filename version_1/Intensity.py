@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from Embryo import *
 from TestingArea import *
-from Polygone import *
+from Polygon import *
 import skimage.measure
 import matplotlib.pyplot as plt
 
