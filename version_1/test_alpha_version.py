@@ -210,3 +210,27 @@ bd.detect_head_tail(mode)
 testing_img.detect_area(boundary = bd)
 testing_img.view_area()
 
+
+#%%
+"""
+Test Intensity module
+"""
+egg1.view()
+
+r = Rotation(egg1)
+rotated_egg = r.rotate_embryo(egg1, bd_mode = 'pca')
+rotated_egg.view()
+
+intensity_curve = Intensity.detect_intensity(rotated_egg)
+print(intensity_curve.shape)
+
+Intensity.view([intensity_curve])
+
+normalized_curves = Intensity.normalization([intensity_curve])
+Intensity.view(normalized_curves)
+
+
+
+
+
+
