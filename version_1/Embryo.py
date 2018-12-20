@@ -10,6 +10,8 @@ import skimage.io
 import skimage.color
 import skimage.segmentation
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 #%%
 class Embryo(object):
@@ -86,6 +88,16 @@ class Embryo(object):
         threshold = skimage.filter.threshold_otsu(self.raw_image)
         bw_image = skimage.segmentation.clear_border(self.raw_image > threshold)
         self.raw_image = self.raw_image * bw_image
+        
+        
+    def view(self, figsize = (10,10) ):
+        if self.raw_image is not None:
+            fig,ax =plt.subplots(figsize = figsize)
+            ax.imshow(self.raw_image)
+            plt.show()
+        else:
+            assert('data is missing')
+
         
     
     

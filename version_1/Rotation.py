@@ -43,13 +43,12 @@ class Rotation(object):
             self.boundary = Boundary(self.ref_image)
             self.boundary.detect_boundary()
             self.boundary.detect_head_tail()
-            self.boundary.PCA_orientation()
         else:
             self.boundary = boundary
     
     
     def set_angle(self, boundary):
-        self.angle = boundary.orientation
+        self.angle = boundary.get_orientation(boundary.mode)
 
     def get_rotated_image(self):
         return self.__rotated_image
@@ -68,5 +67,5 @@ class Rotation(object):
                                                       self.angle,
                                                       resize = False,
                                                       center = self.boundary.get_center(mode))
-        return Embryo(self.rotated_image)
+        return Embryo(self.__rotated_image)
 
