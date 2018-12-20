@@ -3,7 +3,7 @@ import skimage.transform
 from Embryo import * 
 from Boundary import *
 
-class Rotate(object):
+class Rotation(object):
 
     def __init__(self, data=None, boundary=None):
         # initialize angle
@@ -11,16 +11,20 @@ class Rotate(object):
         
         # ref_image is a 2d array
         self.ref_image = None
-        self.set_ref_image(data)
-        
-        # rotated image is of 2d array
-        self.rotated_image = None
+        #self.set_ref_image(data)
         
         # boundary is of Boundary type
         self.boundary = None
         
+        
+        #private variables
+        # rotated image is of 2d array
+        self.__rotated_image = None
+        
+        
+        
     
-    def set_ref_image(self, data):
+    def set_ref_image(self, data = None):
         if data is None:
             assert('reference image has not yet been provided')
             #self.ref_image = None
@@ -34,7 +38,7 @@ class Rotate(object):
             assert('data must have type of numpy.ndarry or Embryo')
             pass
         
-    def set_boundary(self, boundary):
+    def set_boundary(self, boundary = None):
         if (boundary is None):
             self.boundary = Boundary(self.ref_image)
             self.boundary.detect_boundary()
@@ -46,17 +50,22 @@ class Rotate(object):
     def set_angle(self, boundary):
         self.angle = boundary.orientation
 
-    def rotate_embryo(self, boundary= None, mode='curvature'):
-        if self.boundary is not None:
+    def get_rotated_image(self):
+        return self.__rotated_image
+    
+    
+    def rotate_embryo(self, embryo= None, boundary= None, mode='curvature'):
+    #return an Embryo object with an image after rotation
+        if embryo is not None:
+            self.set_ref_image(embryo)
+            
+        if boundary is not None:
             self.set_boundary(boundary)
             self.set_angle(boundary)
             
-        self.rotated_image = skimage.transform.rotate(self.ref_image, 
+        self.__rotated_image = skimage.transform.rotate(self.ref_image, 
                                                       self.angle,
                                                       resize = False,
                                                       center = self.boundary.get_center(mode))
         return Embryo(self.rotated_image)
-
-    def get_rotated_image(self):
-        return self.rotated_image
 

@@ -19,6 +19,7 @@ class Embryo(object):
         self.raw_image = None
         # gene_name is of type string
         self.gene_name = ''
+        self.gene_position = None
         
         # backup if raw image after first initialization
         self.bk_image = None
@@ -42,23 +43,19 @@ class Embryo(object):
             why doesn't the change of input effects the assignment operator = ?
         """
         if (my_image is not None):
-            self.raw_image = my_image
-            self.bk_image = my_image
+            self.raw_image = my_image.copy()
+            self.bk_image = my_image.copy()
         else:
             assert('Image is not provided.')
 
         
     def init_raw_image(self, data):
         if (type(data) is str and data != ''):
-            #self.raw_image = skimage.io.imread(filename)
-            #self.bk_image = self.raw_image.copy()
             self.read_from_filename(data)
         elif (type(data) is np.ndarray and data is not None):
-            #self.raw_image = data
-            #self.bk_image = data
             self.read_from_array(data)
         else:
-            pass
+            assert('input data is unkonwn, please input a filename or an array')
     
     def copy(self):
         result = Embryo()
@@ -80,6 +77,15 @@ class Embryo(object):
         if (name != ''):
             self.gene_name = name
             
+    def set_gene_position(self, position = None):
+        if (position is not None):
+            self.gene_position = position
+            
+            
     def clear_border(self):
-        self.raw_image = skimage.segmentation.clear_border(self.raw_image)
+        threshold = skimage.filter.threshold_otsu(self.raw_image)
+        bw_image = skimage.segmentation.clear_border(self.raw_image > threshold)
+        self.raw_image = self.raw_image * bw_image
+        
+    
     

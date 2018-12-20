@@ -21,7 +21,10 @@ class Polygon(TestingArea):
     def __init__(self, data = None, boundary = None, num_vertices=4, vertices = None):
         super()
         
-        self.area_type="POLYGON" 
+        self.area_type="POLYGON"
+        self.head_dropoff_threshold = 0.1
+        self.tail_dropoff_threshold = 0.1
+     
         
         #init reference image
         self.set_ref_image(data)
@@ -30,9 +33,7 @@ class Polygon(TestingArea):
         # set boundary
         self.set_bounadry(boundary)
         
-        self.head_dropoff_threshold = 0.1
-        self.tail_dropoff_threshold = 0.1
-     
+        
         #(optional)
         # set default number of vertices of a polygone, 
         # the default shap is a rectangle
@@ -41,37 +42,11 @@ class Polygon(TestingArea):
         self.vertices = None
         
         # private variable
-        #self.__area_pil = None
-        self.__boundary = None
+        #self.__area_pil = None        
         self.__regions = None
 
         
-#method for initialization
-    def set_mask(self):
-        super().set_mask()
-    
-    def set_vertices(self, vertices):
-        # set "vertices" from a list of positions of type (int, int)
-        if (vertices is not None):
-            if ( len(vertices.shape) == 1):
-                #input is a list of tuple (x,y)
-                self.vertices = np.array( tuple(map(tuple, vertices)) )
-                self.num_vertices = vertices.shape[0]
-            elif ( len(vertices.shape) == 2 and vertices.shape[1] == 2):
-                self.vertices = vertices
-                self.num_vertices = vertices.shape[0]
-            else:
-                assert('vertices type is not known')
-                pass
-        else:
-            # assert('vertice has not been provided')
-            pass  
-    
-    
-    def check_vertices(self):
-        """ check validity of vertices"""
-        pass;
-    
+#method for initialization    
     def set_ref_image(self, data):
         if data is None:
             assert('reference image information has not yet been provided')
@@ -91,7 +66,7 @@ class Polygon(TestingArea):
             self.set_ref_image_dim()
         else:        
             assert('data must have type numpy.ndarry or Embryo')
-            pass
+            #pass
         
         
     def set_ref_image_dim(self):
@@ -99,7 +74,7 @@ class Polygon(TestingArea):
             self.ref_image_dim = self.ref_image.shape
         else:
             assert('reference image is not known')
-            pass
+            
             
     def init_area(self):
     # initialize "area" as a 2d array with the same size of "ref_image"
@@ -108,31 +83,60 @@ class Polygon(TestingArea):
             self.area = np.zeros(self.ref_image_dim, dtype = bool)
         else:
             assert('reference image is not known')
-            pass
         
         
-    def set_boundary(self, boundary):
+    def set_boundary(self, boundary = None):
         if boundary is not None:
-            self.__boundary = boundary
+            self.boundary = boundary
         else:
-            self.__bounary = Boundary()
-       
-        
-# methodes for computation
+            self.boundary = None
+           
+    def detect_area(self, boundary = None):
+        if boundary is None:
+            if (self.boundary is None):
+            """ need to check whether raw_image is avaliable """
+                self.detect_area_from_image()
+            else:
+                self.detect_area_with_boundary(self.boundary)
+        else:
+            """ need to check whether boundary is valid """
+            self.detect_area_with_boundary(boundary)
+            
     def vertex2poly(self):
     # find the area (polygone) in the referece image
-    # the vertices are sorted counter clock-wise, using PIL library
-    
-        #self.__area_pil = Image(mode='L', self.ref_image_dim, color = 0)
-        #ImageDraw.Draw(self.__area_pil).polygon(self.vertices, outline = 1, fill = 1)
-        #self.area = np.array(self.__area_pil)
-    
-    # use skimage.morphology package
         for (x,y) in self.vertices:
             self.area[x,y] = 1
         self.area = skimage.morphology.convex_hull_image(self.area)
     
+                   
+        
+# optional methods
+    def set_mask(self):
+        super().set_mask()
     
+    def set_vertices(self, vertices):
+        # set "vertices" from a list of positions of type (int, int)
+        if (vertices is not None):
+            if ( len(vertices.shape) == 1):
+                #input is a list of tuple (x,y)
+                self.vertices = np.array( tuple(map(tuple, vertices)) )
+                self.num_vertices = vertices.shape[0]
+            elif ( len(vertices.shape) == 2 and vertices.shape[1] == 2):
+                self.vertices = vertices
+                self.num_vertices = vertices.shape[0]
+            else:
+                assert('vertices type is not known')
+        else:
+            assert('vertices has not been provided')
+        #    pass  
+    
+    def check_vertices(self):
+        """ check validity of vertices"""
+        pass;
+        
+    
+        
+# methodes for computation    
     
     # auxilary function to detect_area: in the case without providing boundary
     def detect_area_from_image(self):
@@ -164,7 +168,7 @@ class Polygon(TestingArea):
                     self.__main_region = rg
         else:
             assert('no region detected in the image')
-            pass
+            #pass
     
         #crop __main_region with head and tail dropoff threshold
         """ suppose that the ref_image is horizontal after rotation
@@ -223,8 +227,10 @@ class Polygon(TestingArea):
             the major axis that link head and tail may not be level
             assume that the tail is on the left hand side of the head
         """
+        if self.boundary is None:
+            self.set_boundary(boundary)
+        
         # step 1: find the line connected head and tail
-        self.set_boundary(boundary)
         
         major_axis_angle = self.angle_of_a_line( boundary.tail, boundary.head) 
         major_axis_length = math.sqrt( (boundary.head[1]- boundary.tail[1])**2 \
@@ -298,17 +304,7 @@ class Polygon(TestingArea):
         self.vertex2poly()
         
         
-        
-    def detect_area(self, boundary = None):
-        if boundary is None:
-            """ need to check whether raw_image is avaliable """
-            self.detect_area_from_image()
-        else:
-            """ need to check whether boundary is valid """
-            self.detect_area_with_boundary(boundary)
-            
-
-         
+     
         
         
             
