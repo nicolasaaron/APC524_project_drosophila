@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2017.2.10)  20 NOV 2018 07:32
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9.6100 64-bit) (preloaded format=pdflatex 2017.2.10)  27 NOV 2018 10:21
 entering extended mode
 **./schedule.tex
 (schedule.tex
@@ -691,30 +691,35 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 117.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsb.fd"
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) [1
+)
+Overfull \hbox (6.87473pt too wide) in paragraph at lines 117--117
+ [][] 
+ []
 
-{C:/Users/iris/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] (schedule.bb
-l
+[1
+
+{C:/Users/iris/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
+(schedule.bbl
 
 LaTeX Warning: Empty `thebibliography' environment on input line 3.
 
-) [2] (schedule.aux) ) 
+) [3] (schedule.aux) ) 
 Here is how much of TeX's memory you used:
- 9134 strings out of 493333
- 137914 string characters out of 3139197
- 247084 words of memory out of 3000000
- 12498 multiletter control sequences out of 15000+200000
- 7779 words of font info for 30 fonts, out of 3000000 for 9000
+ 9136 strings out of 493333
+ 137946 string characters out of 3139197
+ 248109 words of memory out of 3000000
+ 12500 multiletter control sequences out of 15000+200000
+ 8393 words of font info for 32 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 42i,6n,38p,610b,219s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 42i,6n,38p,610b,247s stack positions out of 5000i,500n,10000p,200000b,50000s
  <C:\Users\iris\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\
 jknappen\ec\dpi600\tcrm1200.pk><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
 amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
 /cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17
 .pfb>
-Output written on schedule.pdf (2 pages, 46401 bytes).
+Output written on schedule.pdf (3 pages, 53184 bytes).
 PDF statistics:
- 26 PDF objects out of 1000 (max. 8388607)
+ 29 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

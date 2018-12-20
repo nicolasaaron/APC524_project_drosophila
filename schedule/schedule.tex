@@ -106,7 +106,7 @@
 \title{Project APC 524}
 
 %	Set authors
-\author{Guanhua He, Ping Wu, Zongjun Tan}
+\author{Guanhua He (Molbio), Ping Wu (Molbio), Zongjun Tan (ORFE)}
 
 %%%%%%%%%%%%%%% End of front cover's page %%%%%%%%%%%%%%%%%%%%%
 
@@ -124,8 +124,69 @@
 	
 This project is about to improve some image analyzing codes and their performance related to a study on drosophila embryo conducted by one of our group
 members Ping Wu. She uses some fluorescent antibodies to stain for endogenous proteins to get spatial gene expression profiles at certain stage of embryonic development. Then, she will infer how the perturbation exerted on the embryos affect the transcription network and downstream gene expression base on the profile. Before making any biological analysis, she requires to extract fluorescent intensities from each cell along the whole embryo,
-Given the above background information, we would like to achieve two objectives in this project. The first one is to create an interface adapted to her existing
+Given the above background information, we would like to achieve two objectives in this project. The first one is to create an interface adapted to the existing
 codes in order to facilitate the future development in her own research. The second objective tends to improve automation. The initial image processing is still done manually currently, which is time consuming. The initial step requires recognition the morphology of the embryo and distinguish head and tail, dorsal and ventral side, and then rotate and center the object. Some noise removal steps are also required. If we have spare time, we could adapt this code to a series of time lapse images, with cell tracking function and parallel computing function for large scale image processing.
+
+?	%%%%%%%%%%%%%%%
+	
+	\section{Organization}
+
+	The codes will be written in Python. They are basically built on two classes, one for data storage and another one for structure identification and intensity analysis. 
+	
+	\subsection{Class for data storage}
+	There are at least 4 type of genes being tracked in this project. For each of them, a photograph of the whole embryo is taken in which we can observe their spatial positions along with the fluorescent intensities.
+	
+	\begin{itemize}
+		\item \textbf{embryo}: an abstract class. Each instance of class embryo represents a sample embryo for study. Two child classes will be derive from it: \textbf{gene, topology}. This class also contains a member of helper class: \textbf{filter}
+		
+		abstract methods:
+		\begin{itemize}
+			\item apply a filter to a gene object, returns a topology object.
+			\item apply a filter to a topology object, returns a topology object.
+			\item study the effect of a topology on a gene object, returns a topology object. This method will be the core for the upcoming biological analysis.  In this situation, the class member ``filter" in the topology object will be invoked.
+		\end{itemize} 
+		 
+	
+		\item \textbf{gene}: this class represents a particular status of some kind of gene. It contains one image of the spatial location of this gene at a certain time. 
+		For serial data, it can also contains consecutive images that represent the spatial evolution of this gene along time.
+		
+		\item \textbf{topology}: this class represents the spatial structure of a typical fluorescent gene in an embryo. It can contain one or multiple structures of this typical gene in a sample embryo.
+		
+		It can have child classes, for example \textbf{``boundary"} and \textbf{``intensity"}, which are designed for storing special topology information.
+		
+		\item \textbf{filter}: this class represents the information of filters that we would like to apply on an image. The image can be a typical gene's spatial locations (store in the ``\textbf{gene}" object), or a certain topology image of an embryo (store in the \textbf{``topology"} object).		
+		
+	\end{itemize} 
+
+	
+	\subsection{Class for intensity analysis}
+	
+	There are three classes there: \textbf{preprocessing}, \textbf{analysis}, \textbf{drawing}
+	These three classes are wrappers of the ``embryo" class.
+	
+	\begin{itemize}
+		\item \textbf{preprocessing}: this class is dedicate for any pre-treatments on an embryo's photograph. It contains a class member of ``topology" type.
+		
+		Methods:
+		\begin{itemize}
+			\item boundary detection, return type: void. 
+			\item rotation/centralization, output: embryo object.
+		\end{itemize}
+	
+		\item \textbf{analysis}: this class collects all methods for studying fluorescent intensity. It contains a class member of ``topology" type.
+		
+		Methods:
+		\begin{itemize}
+			\item get intensity, return type:void.
+			\item normalization, return type:void.
+		\end{itemize}
+	
+		\item \textbf{drawing}: this class provides some methods for viewing graphically the data. Methods have no returns type.
+	\end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
 
 	\section{Schedule}
 	In total 8 weeks.
