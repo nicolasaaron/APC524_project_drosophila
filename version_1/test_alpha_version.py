@@ -218,9 +218,11 @@ Test Intensity module
 egg1.view()
 
 r = Rotation(egg1)
+
 rotated_egg = r.rotate_embryo(egg1, bd_mode = 'pca')
 rotated_egg.view()
 
+#%%
 intensity_curve = Intensity.detect_intensity(rotated_egg)
 print(intensity_curve.shape)
 

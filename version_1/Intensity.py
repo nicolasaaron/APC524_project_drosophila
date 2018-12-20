@@ -73,16 +73,18 @@ def detect_intensity(embryo, boundary = None, testing_area = None, horizontal_fl
     # find testing area in 'raw_image'
     testing_zone = embryo.raw_image *  testing_area.area
     
+    
+    
     # compute intensity along the line connecting start and end points in testing_zone
 
     if horizontal_flag:
         # in case the embryo is level
         x = np.arange(start_pt[0], end_pt[0]+1)
-        value = skimage.measure.profile_line(testing_zone, (start_pt[0], end_pt[1]), end_pt)
+        value = skimage.measure.profile_line(testing_zone, (end_pt[1], start_pt[0]), (end_pt[1], end_pt[0]))
         intensity_curve = np.column_stack((x,value))
     else:
         rr,cc = skimage.draw.line(start_pt[0], start_pt[1], end_pt[0], end_pt[1])
-        value = skimage.measure.profile_line(testing_zone, start_pt, end_pt)
+        value = skimage.measure.profile_line(testing_zone, (start_pt[1], start_pt[0]), (end_pt[1], end_pt[0]) )
         intensity_curve = np.column_stack((rr,cc,value))
         
     return intensity_curve
