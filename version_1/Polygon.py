@@ -46,7 +46,7 @@ class Polygon(TestingArea):
 #method for initialization    
     def set_ref_image(self, data):
         if data is None:
-            assert('reference image information has not yet been provided')
+            print('reference image information has not yet been provided')
             self.ref_image = None
             self.ref_image_dim = None
         elif ( (type(data) is np.ndarray) and (len(data.shape) == 1) ):
@@ -62,7 +62,7 @@ class Polygon(TestingArea):
             self.ref_image = data.raw_image.copy
             self.set_ref_image_dim()
         else:        
-            assert('data must have type numpy.ndarry or Embryo')
+            print('data must have type numpy.ndarry or Embryo')
             #pass
         
         
@@ -70,7 +70,7 @@ class Polygon(TestingArea):
         if (self.ref_image is not None):
             self.ref_image_dim = self.ref_image.shape
         else:
-            assert('reference image size is not known')
+            print('reference image size is not known')
             
             
     def init_area(self):
@@ -79,7 +79,7 @@ class Polygon(TestingArea):
         if (self.ref_image_dim is not None):
             self.area = np.zeros(self.ref_image_dim, dtype = bool)
         else:
-            assert('reference image is not known')
+            print('reference image is not known')
         
         
     def set_boundary(self, boundary = None):
@@ -125,9 +125,9 @@ class Polygon(TestingArea):
                 self.vertices = vertices
                 self.num_vertices = vertices.shape[0]
             else:
-                assert('vertices type is not known')
+                print('vertices type is not known')
         else:
-            assert('vertices has not been provided')
+            print('vertices has not been provided')
         #    pass  
     
     def check_vertices(self):
@@ -175,7 +175,7 @@ class Polygon(TestingArea):
                     temp_area = rg.area
                     self.__main_region = rg
         else:
-            assert('no region detected in the image')
+            print('no region detected in the image')
             #pass
     
         #crop __main_region with head and tail dropoff threshold

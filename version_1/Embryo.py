@@ -48,16 +48,16 @@ class Embryo(object):
             self.raw_image = my_image.copy()
             self.bk_image = my_image.copy()
         else:
-            assert('Image is not provided.')
+            print('Image is not provided.')
 
         
     def init_raw_image(self, data):
-        if (type(data) is str and data != ''):
+        if (isinstance(data, str) and data != ''):
             self.read_from_filename(data)
-        elif (type(data) is np.ndarray and data is not None):
+        elif (isinstance( data, np.ndarray) and data is not None):
             self.read_from_array(data)
         else:
-            assert('input data is unkonwn, please input a filename or an array')
+            print('input data is unkonwn, please input a filename or an array')
     
     def copy(self):
         result = Embryo()
@@ -96,7 +96,7 @@ class Embryo(object):
             ax.imshow(self.raw_image)
             plt.show()
         else:
-            assert('data is missing')
+            print('data is missing')
 
         
     

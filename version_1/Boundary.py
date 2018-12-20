@@ -13,6 +13,8 @@ import scipy, scipy.interpolate
 import numpy.fft
 import scipy.signal
 from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
 
 from Embryo import *
 
@@ -29,13 +31,15 @@ class Boundary(object):
         self.boundary_curve = None
         
         # set referenced image
-        self.set_ref_image(data)
+        self.ref_image = None
         
         # convex contour
         self.convex_contour = None
         
         # private variables
         self.__curvature = None
+        self.__angles_cur = None
+        self.__distances_cur = None
         self.__fft_approx_order = 20
         self.__cgx = 0
         self.__cgy = 0
@@ -51,20 +55,24 @@ class Boundary(object):
         self.__pca_angles = np.array([0, math.pi])
         self.__pca_orientation = 0
         
+        # initialization
+        self.set_ref_image(data)
+
+        
    
     
-    def set_ref_image(self, data):
+    def set_ref_image(self, data=None):
         if (data is None):
-            assert("referenced image is not provided")
-            self.ref_image = None
-        elif (type(data) is np.ndarray):
+            print("referenced image is not provided")
+            #self.ref_image = None
+        elif (isinstance(data, np.ndarray) ):
             # if data is an array
             self.ref_image = data
-        elif (type(data) is Embryo):
+        elif (isinstance(data, Embryo)):
             # if data is an Embryo object
             self.ref_image = data.raw_image.copy()
         else:
-            assert('unknown reference image data type')
+            print('unknown reference image data type')
             #pass
             
     
@@ -87,12 +95,12 @@ class Boundary(object):
                     self.boundary_curve = np.round(curve)
                     size = len(curve)
         else:
-            assert('No boundaries are detected in the reference image')
+            print('No boundaries are detected in the reference image')
         
            
     
     def compute_angle(self, point, origin=(0,0)):
-        return np.angle( (point[0] - origin[0] ) + 1j * (point[1] - origin[1]) )
+        return np.angle( (point[0] - origin[0] ) - 1j * (point[1] - origin[1]) )
     
     def transform_polar_to_cartesian(self, angle, distance, origin=(0,0)):
         x = origin[0] + distance * math.cos(angle)
@@ -109,13 +117,13 @@ class Boundary(object):
         cgx = np.sum ( np.arange(0, self.ref_image.shape[1]) * np.sum(bw_image, axis = 0) ) / np.sum(bw_image)
         cgy = np.sum ( np.arange(0, self.ref_image.shape[0]) * np.sum(bw_image, axis = 1) ) / np.sum(bw_image)
         self.__cgx, self.__cgy = np.round(cgx), np.round(cgy)
-        self.central_gravity = np.array([self.__cgx, self.__cgy])
+        self.__central_gravity = np.array([self.__cgx, self.__cgy])
     
     def detect_convex_hull(self, threshold=None):
         if threshold is None:
             threshold = skimage.filters.threshold_otsu(self.ref_image)
-            
-        self.convex_hull = skimage.morphology.convex_hull(self.ref_image > threshold)
+        
+        self.convex_hull = skimage.morphology.convex_hull_image(self.ref_image > threshold)
         contours = skimage.measure.find_contours(self.convex_hull, level = threshold)
         self.convex_contour = contours[0]    
    
@@ -139,7 +147,7 @@ class Boundary(object):
         x = self.convex_contour[:,1]
         y = self.convex_contour[:,0]
         
-        complex_bd_points = (x - self.__cgx) + 1j * (y - self.__cgy)
+        complex_bd_points = (x - self.__cgx) - 1j * (y - self.__cgy)
         angles = np.angle(complex_bd_points)
         distances = np.absolute(complex_bd_points)
         sortidx = np.argsort( angles )
@@ -152,7 +160,7 @@ class Boundary(object):
         
         # interpolate to evenly spaced angles
         f = scipy.interpolate.interp1d(angles, distances, 'linear')
-        angles_uniform = scipy.linspace(-math.pi, math.pi, num=1000, endpoint=False) 
+        angles_uniform = scipy.linspace(-math.pi, math.pi, num=3000, endpoint=False) 
         distances_uniform = f(angles_uniform)
 
 
@@ -168,6 +176,8 @@ class Boundary(object):
         
         self.__curvature = np.divide ( (np.abs(r**2 + 2 * r_prime**2- r * r_prime2) ) **2,
                                         np.power( (r**2 + r_prime**2), 1.5) )
+        self.__angles_cur = angles_uniform
+        self.__distances_cur = distances_fit
         
         
 
@@ -176,6 +186,7 @@ class Boundary(object):
         peaks_idx = np.argsort(self.__curvature[peaks])
         peaks_idx = np.flip(peaks_idx)
         self.__peaks = peaks[peaks_idx]
+        
         
         head_idx = peaks[0]
         tail_idx = peaks[2]
@@ -265,7 +276,8 @@ class Boundary(object):
         return [result1, result2]
     
     
-                
+
+# method for getting attributes
     def get_center(self, method='curvature'):
         if (method == 'curvature') and (self.__central_gravity is not None):
             return self.__central_gravity
@@ -283,21 +295,58 @@ class Boundary(object):
             return 0
         
    
-     def get_head(self, method = 'curvature'):
+    def get_head(self, method = 'curvature'):
         if (method == 'curvature'):
             return self.head
         elif (method == 'pca'):
             return self.__pca_head
         else:
-            assert('method is not recognized')
+            print('method is not recognized')
             
-     def get_tail(self, method = 'curvature'):
+    def get_tail(self, method = 'curvature'):
         if (method == 'curvature'):
             return self.tail
         elif (method == 'pca'):
             return self.__pca_tail
         else:
-            assert('method is not recognized')
+            print('method is not recognized')
+            
+    def get_curvature_info(self):
+        if self.__curvature is not None:
+            return [self.__curvature, self.__angles_cur, self.__distances_cur]
+        else:
+            print('curvature is None')
+            
+    def get_peaks(self):
+        if self.__peaks is not None:
+            return self.__peaks
+        else:
+            print('peak array is None')
+        
+            
+     
+        
+        
+        
+# methods for visulization
+    def view_boundary_curve(self, figsize=(10,10)):
+        if self.boundary_curve is not None:
+            fig,ax =plt.subplots(figsize = figsize)            
+            ax.imshow(self.ref_image)
+            ax.plot(self.boundary_curve[:,1], self.boundary_curve[:,0], color = 'r')
+            plt.show()
+        else:
+            print('data is missing')
+            
+    def view(self, figsize = (10,10) ):
+        if self.ref_image is not None:
+            fig,ax =plt.subplots(figsize = figsize)
+            ax.imshow(self.ref_image)
+            plt.show()
+        else:
+            print('data is missing')
+
+        
             
     
                 
