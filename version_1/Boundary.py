@@ -20,6 +20,7 @@ class Boundary(object):
     
     def __init__(self, data = None):
         
+        self.mode = 'curvature'
         self.head = None
         self.tail = None
         self.orientation = 0
@@ -28,8 +29,10 @@ class Boundary(object):
         self.boundary_curve = None
         
         # set referenced image
-        self.ref_image = None
         self.set_ref_image(data)
+        
+        # convex contour
+        self.convex_contour = None
         
         # private variables
         self.__curvature = None
@@ -41,8 +44,10 @@ class Boundary(object):
         # Principle component analysis
         self.__pca = None
         self.__pca_major_axis = 0
-        self.__pac_minor_axis = 0
+        self.__pca_minor_axis = 0
         self.__pca_center = None
+        self.__pca_head = None
+        self.__pca_tail = None
         self.__pca_angles = np.array([0, math.pi])
         self.__pca_orientation = 0
         
@@ -51,7 +56,7 @@ class Boundary(object):
     def set_ref_image(self, data):
         if (data is None):
             assert("referenced image is not provided")
-            #self.ref_image = None
+            self.ref_image = None
         elif (type(data) is np.ndarray):
             # if data is an array
             self.ref_image = data
@@ -60,7 +65,7 @@ class Boundary(object):
             self.ref_image = data.raw_image.copy()
         else:
             assert('unknown reference image data type')
-            pass
+            #pass
             
     
     def detect_boundary(self):
@@ -84,16 +89,7 @@ class Boundary(object):
         else:
             assert('No boundaries are detected in the reference image')
         
-        
-        
-    def detect_convex_hull(self, threshold=None):
-        if threshold is None:
-            threshold = skimage.filters.threshold_otsu(self.ref_image)
-        self.convex_hull = skimage.morphology.convex_hull(self.ref_image > threshold)
-        contours = skimage.measure.find_contours(self.convex_hull, level = 0)
-        self.convex_contour = contours[0]
-    
-    
+           
     
     def compute_angle(self, point, origin=(0,0)):
         return np.angle( (point[0] - origin[0] ) + 1j * (point[1] - origin[1]) )
@@ -114,12 +110,31 @@ class Boundary(object):
         cgy = np.sum ( np.arange(0, self.ref_image.shape[0]) * np.sum(bw_image, axis = 1) ) / np.sum(bw_image)
         self.__cgx, self.__cgy = np.round(cgx), np.round(cgy)
         self.central_gravity = np.array([self.__cgx, self.__cgy])
+    
+    def detect_convex_hull(self, threshold=None):
+        if threshold is None:
+            threshold = skimage.filters.threshold_otsu(self.ref_image)
+            
+        self.convex_hull = skimage.morphology.convex_hull(self.ref_image > threshold)
+        contours = skimage.measure.find_contours(self.convex_hull, level = threshold)
+        self.convex_contour = contours[0]    
    
     
-    def detect_head_tail(self):
+    
+    def detect_head_tail(self, mode= 'curvature'):
+        self.mode = mode
+        if mode == 'curvature':
+            self.curvature_method()
+        if mode == 'pca':
+            self.PCA_method()
+        
+        
+    
+    def curvature_method(self):
     # compute the curvature for the convex contour of referenced image
     # we transform boundary_curve into polar coordinates and use FFT to fit the curve
         self.detect_gravity_central()
+        self.detect_convex_hull()
         
         x = self.convex_contour[:,1]
         y = self.convex_contour[:,0]
@@ -174,9 +189,14 @@ class Boundary(object):
         self.tail = self.transform_polar_to_cartesian(tail_angle, tail_distance, self.__central_gravity)
         
         self.orientation = self.compute_angle(self.head, self.__central_gravity)
+     
+        
+        
         
     
-    def PCA_orientation(self):
+    def PCA_method(self):
+        
+        self.detect_boundary()
         
         threshold = skimage.filter.threshold_otsu(self.ref_image)
         bw_image = self.ref_image > threshold
@@ -212,26 +232,74 @@ class Boundary(object):
                                       self.compute_angle(self.__pca_minor_axis)])
         self.__pca_orientation = self.__pca_angles[0]
         
-        self.PAC_head(self.convex_contour)
+        self.__pca_head, self.__pca_tail = self.PCA_head_tail(self.boundary_curve)
+    
+        return self.__pca_orientation
     
     
-    
-    def PCA_head(self, curve):
-        diff_angle = math.inf        
+    def PCA_head_tail(self, curve):
+        # find head position in the curve with PCA parameters
+        diff_angle = math.inf 
+        result1 = []
+        
         for point in curve:
             angle = self.compute_angle(point, self.__pca_center)
             if np.abs(angle - self.__pca_orientation) < diff_angle:
                 diff_angle = np.abs(angle - self.__pca_orientation)
-                self.__pca_head = point
+                result1 = point
                 
+        # find tail position in the curve with PCA parameters
+        diff_angle = math.inf
+        if self.__pca_orientation > 0:
+            angle_tail = self.__pca_orientation - math.pi
+        else:
+            angle_tail = self.__pca_orientation + math.pi
+        
+        result2 = []
+        for point in curve:
+            angle = self.compute_angle(point, self.__pca_center)
+            if np.abs(angle - angle_tail) < diff_angle:
+                diff_angle = np.abs(angle - angle_tail)
+                result2 = point
+        
+        return [result1, result2]
+    
+    
                 
     def get_center(self, method='curvature'):
-        if method == 'curvature':
+        if (method == 'curvature') and (self.__central_gravity is not None):
             return self.__central_gravity
-        elif method =='pca':
+        elif (method =='pca') and (self.__pca_center is not None):
             return self.__pca_center
         else:
             return np.round(self.ref_image.shape / 2)
+        
+    def get_orientation(self, method ='curvature'):
+        if (method == 'curvature'):
+            return self.orientation
+        elif (method == 'pca'):
+            return self.__pca_orientation
+        else:
+            return 0
+        
+   
+     def get_head(self, method = 'curvature'):
+        if (method == 'curvature'):
+            return self.head
+        elif (method == 'pca'):
+            return self.__pca_head
+        else:
+            assert('method is not recognized')
+            
+     def get_tail(self, method = 'curvature'):
+        if (method == 'curvature'):
+            return self.tail
+        elif (method == 'pca'):
+            return self.__pca_tail
+        else:
+            assert('method is not recognized')
+            
+    
                 
         
         

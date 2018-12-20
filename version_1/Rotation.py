@@ -14,8 +14,7 @@ class Rotation(object):
         #self.set_ref_image(data)
         
         # boundary is of Boundary type
-        self.boundary = None
-        
+        self.boundary = None        
         
         #private variables
         # rotated image is of 2d array
@@ -36,7 +35,8 @@ class Rotation(object):
             self.ref_image = data.raw_image.copy
         else:        
             assert('data must have type of numpy.ndarry or Embryo')
-            pass
+            
+        
         
     def set_boundary(self, boundary = None):
         if (boundary is None):
@@ -46,6 +46,7 @@ class Rotation(object):
             self.boundary.PCA_orientation()
         else:
             self.boundary = boundary
+    
     
     def set_angle(self, boundary):
         self.angle = boundary.orientation

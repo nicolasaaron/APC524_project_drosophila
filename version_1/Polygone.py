@@ -28,21 +28,18 @@ class Polygon(TestingArea):
         
         #init reference image
         self.set_ref_image(data)
-        self.init_area()        
         
         # set boundary
         self.set_bounadry(boundary)
         
         
         #(optional)
-        # set default number of vertices of a polygone, 
-        # the default shap is a rectangle
+        # set default number of vertices of a polygone, the default shap is a rectangle
         self.num_vertices = num_vertices          
         # vertices of a polygone : nx2 array
         self.vertices = None
         
         # private variable
-        #self.__area_pil = None        
         self.__regions = None
 
         
@@ -73,7 +70,7 @@ class Polygon(TestingArea):
         if (self.ref_image is not None):
             self.ref_image_dim = self.ref_image.shape
         else:
-            assert('reference image is not known')
+            assert('reference image size is not known')
             
             
     def init_area(self):
@@ -94,7 +91,7 @@ class Polygon(TestingArea):
     def detect_area(self, boundary = None):
         if boundary is None:
             if (self.boundary is None):
-            """ need to check whether raw_image is avaliable """
+                """ need to check whether raw_image is avaliable """
                 self.detect_area_from_image()
             else:
                 self.detect_area_with_boundary(self.boundary)
@@ -104,6 +101,9 @@ class Polygon(TestingArea):
             
     def vertex2poly(self):
     # find the area (polygone) in the referece image
+        if self.area is None:
+            self.init_area()
+            
         for (x,y) in self.vertices:
             self.area[x,y] = 1
         self.area = skimage.morphology.convex_hull_image(self.area)
@@ -134,6 +134,14 @@ class Polygon(TestingArea):
         """ check validity of vertices"""
         pass;
         
+        
+    def load_ref_image(self, data = None, filename=''):
+        if (data is not None):
+            self.ref_image.read_from_array(data)
+        elif (filename != ''):
+            self.ref_image.read_from_filename(filename)            
+        else:
+            pass
     
         
 # methodes for computation    
@@ -211,8 +219,7 @@ class Polygon(TestingArea):
     
     def coordinate_shift(start, length, angle):
         new_row = start[0] + length * math.cos(angle)
-        new_col = start[1] + length * math.sin(angle)
-        
+        new_col = start[1] + length * math.sin(angle)        
         return np.array([new_row, new_col])
     
     def angle_of_a_line(start, end):
@@ -227,8 +234,8 @@ class Polygon(TestingArea):
             the major axis that link head and tail may not be level
             assume that the tail is on the left hand side of the head
         """
-        if self.boundary is None:
-            self.set_boundary(boundary)
+        #update boundary
+        self.set_boundary(boundary)
         
         # step 1: find the line connected head and tail
         
