@@ -1,0 +1,21 @@
+setBatchMode(true); 
+path=getDirectory("/Users/pingwu/Desktop/raw_images"); 
+list=getFileList(path); 
+
+for (i=0; i<list.length;i++) {
+	open(path+list[i]); 
+	imgname = getTitle();
+	run("Split Channels");
+	selectWindow("C4"+"-"+imgname);
+	saveAs("PNG","/Users/pingwu/Desktop/images/C4"+"-"+imgname);
+	close();
+	selectWindow("C3"+"-"+imgname);
+	saveAs("PNG","/Users/pingwu/Desktop/images/C3"+"-"+imgname);
+	close();
+	selectWindow("C2"+"-"+imgname);
+	saveAs("PNG","/Users/pingwu/Desktop/images/C2"+"-"+imgname);
+	close();
+	selectWindow("C1"+"-"+imgname);
+	saveAs("PNG","/Users/pingwu/Desktop/images/C1"+"-"+imgname);
+	close();	
+}
