@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/pingwu/APC524_project_drosophila/doxygen/build/cmake-3.13.2/Tests/FindPackageModeMakefileTest/foo.cpp
+foo.h
+/Users/pingwu/APC524_project_drosophila/doxygen/build/cmake-3.13.2/Tests/FindPackageModeMakefileTest/foo.h
+
+/Users/pingwu/APC524_project_drosophila/doxygen/build/cmake-3.13.2/Tests/FindPackageModeMakefileTest/foo.h
+

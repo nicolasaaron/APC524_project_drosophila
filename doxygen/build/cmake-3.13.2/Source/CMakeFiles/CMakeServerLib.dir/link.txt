@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libCMakeServerLib.a  CMakeFiles/CMakeServerLib.dir/cmConnection.cxx.o CMakeFiles/CMakeServerLib.dir/cmFileMonitor.cxx.o CMakeFiles/CMakeServerLib.dir/cmJsonObjects.cxx.o CMakeFiles/CMakeServerLib.dir/cmPipeConnection.cxx.o CMakeFiles/CMakeServerLib.dir/cmServer.cxx.o CMakeFiles/CMakeServerLib.dir/cmServerConnection.cxx.o CMakeFiles/CMakeServerLib.dir/cmServerProtocol.cxx.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libCMakeServerLib.a

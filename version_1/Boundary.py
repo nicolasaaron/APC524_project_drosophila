@@ -121,12 +121,19 @@ class Boundary(object):
     
     def detect_convex_hull(self, threshold=None):
         if threshold is None:
-            threshold = skimage.filters.threshold_otsu(self.ref_image)
+            threshold = skimage.filters.threshold_otsu(self.c_image)
         
-        self.convex_hull = skimage.morphology.convex_hull_image(self.ref_image > threshold)
+        self.convex_hull = skimage.morphology.convex_hull_image(self.c_image > threshold)#use c_image from contour_to_image as input
         contours = skimage.measure.find_contours(self.convex_hull, level = threshold)
         self.convex_contour = contours[0]    
    
+    def contour_to_image(self):
+        self.shape = self.ref_image.shape
+        self.c_image = np.zeros(shape)
+        for i in range(len(self.boundary_curve)):
+             x = boundary_curve[i][0].astype(int)
+             y = boundary_curve[i][1].astype(int)
+             self.c_image[x,y] =1
     
     
     def detect_head_tail(self, mode= 'curvature'):
@@ -189,7 +196,7 @@ class Boundary(object):
         
         
         head_idx = self.__peaks[0]
-        tail_idx = self.__peaks[2]       
+        tail_idx = self.__peaks[1]   # need modification!!!!    
         
         head_angle = angles_uniform[head_idx]
         head_distance = distances_fit[head_idx]

@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/clang   -w -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/curltest.dir/curltest.c.o  -o curltest lib/libcmcurl.a -lidn2 -framework CoreFoundation -framework Security ../cmzlib/libcmzlib.a 
