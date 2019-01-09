@@ -32,7 +32,7 @@ def load_data():
     
     #gene_names = np.array( ['C1-ubcd full blue','C2-ubcd full blue','C3-ubcd full blue','C4-ubcd full blue'] )
     gene_names = np.array( ['C1-ubcd dark','C2-ubcd dark','C3-ubcd dark','C4-ubcd dark'] )
-    gene_positions = [8]
+    gene_positions = [2]
     
     for position in gene_positions:
         temp_list = []
@@ -82,6 +82,14 @@ def extract_position(egg):
     
     return pos_data
 
+
+def extract_position_fast(img):
+    indices = np.where(img > 0)
+    coordinates = np.array( list(zip(indices[0], indices[1])) )
+    return coordinates
+
+
+
 #@profile
 def remove_outliers(img, perc_outlier = 0.01):
     
@@ -89,7 +97,8 @@ def remove_outliers(img, perc_outlier = 0.01):
     egg.denoise()    
     egg.clear_border()
     
-    pos_data = extract_position(egg)
+    #pos_data = extract_position(egg)
+    pos_data = extract_position_fast(egg.raw_image)
     
     rng = np.random.RandomState(42)
     clf = IsolationForest(behaviour="new",
@@ -105,7 +114,8 @@ def remove_outliers(img, perc_outlier = 0.01):
         row, col = pos_data[i,:]
         if label_predict[i] == -1:
             egg.raw_image[(row,col)] = 0
-            
+    
+        
     return egg
 
 
@@ -246,10 +256,10 @@ def view_intensity_curves(intensity_curves, col_idx=0):
 #%%
       
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
     embryo_list = load_data()  
     convert_to_grayscale(embryo_list)
-    #pre_processing(embryo_list)
+    pre_processing(embryo_list)
     #view_embryos(embryo_list)
     
     
@@ -272,7 +282,7 @@ def view_intensity_curves(intensity_curves, col_idx=0):
     intensity_curves = intensity_process(embryo_list, active_area_list, mode='pca')
 
 
-#view_intensity_curves(intensity_curves, col_idx=0)
+    #view_intensity_curves(intensity_curves, col_idx=0)
 
     
     

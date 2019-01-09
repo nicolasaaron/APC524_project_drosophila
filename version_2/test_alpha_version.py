@@ -231,6 +231,10 @@ Intensity.view([intensity_curve])
 normalized_curves = Intensity.normalization([intensity_curve])
 Intensity.view(normalized_curves)
 
+#%%
+
+egg = embryo_list[0,1]
+
 
 
 

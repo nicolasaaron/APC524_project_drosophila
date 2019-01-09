@@ -2,15 +2,13 @@ digraph {
 	graph [fontname=Arial, nodesep=0.125, ranksep=0.25];
 	node [fontcolor=white, fontname=Arial, height=0, shape=box, style=filled, width=0];
 	edge [fontname=Arial];
-	"<built-in method marshal.loads>" [color="#0d1074", fontcolor="#ffffff", fontsize="10.00", label="<built-in method marshal.loads>\n0.76%\n(0.76%)\n887×"];
-	"<built-in method numpy.core.multiarray.copyto>" [color="#0d1c77", fontcolor="#ffffff", fontsize="10.00", label="<built-in method numpy.core.multiarray.copyto>\n3.62%\n(3.62%)\n307×"];
-	"<built-in method numpy.core.multiarray.dot>" [color="#0d0f73", fontcolor="#ffffff", fontsize="10.00", label="<built-in method numpy.core.multiarray.dot>\n0.55%\n(0.55%)\n6×"];
-	"<method 'append' of 'list' objects>" [color="#0d1475", fontcolor="#ffffff", fontsize="10.00", label="<method 'append' of 'list' objects>\n1.63%\n(1.63%)\n336416×"];
-	"<method 'nonzero' of 'numpy.ndarray' objects>" [color="#0d1074", fontcolor="#ffffff", fontsize="10.00", label="<method 'nonzero' of 'numpy.ndarray' objects>\n0.83%\n(0.83%)\n200×"];
-	"<method 'reduceat' of 'numpy.ufunc' objects>" [color="#0d1d77", fontcolor="#ffffff", fontsize="10.00", label="<method 'reduceat' of 'numpy.ufunc' objects>\n3.71%\n(3.71%)\n200×"];
-	"<method 'reshape' of 'numpy.ndarray' objects>" [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="<method 'reshape' of 'numpy.ndarray' objects>\n2.71%\n(2.71%)\n113×"];
-	"get_data" [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="get_data\n2.62%\n(2.38%)\n887×"];
-	"indentcount_lines" [color="#0d0f74", fontcolor="#ffffff", fontsize="10.00", label="indentcount_lines\n0.64%\n(0.32%)\n367×"];
-	ones [color="#0d1c77", fontcolor="#ffffff", fontsize="10.00", label="ones\n3.65%\n(0.01%)\n305×"];
-	ones -> "<built-in method numpy.core.multiarray.copyto>" [arrowsize="0.35", color="#0d1c77", fontcolor="#0d1c77", fontsize="10.00", label="3.62%\n305×", labeldistance="0.50", penwidth="0.50"];
+	"<built-in method marshal.loads>" [color="#0d0f73", fontcolor="#ffffff", fontsize="10.00", label="<built-in method marshal.loads>\n0.58%\n(0.58%)\n1091×"];
+	"<built-in method numpy.core.multiarray.copyto>" [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="<built-in method numpy.core.multiarray.copyto>\n2.76%\n(2.76%)\n314×"];
+	"<method 'nonzero' of 'numpy.ndarray' objects>" [color="#0d0f74", fontcolor="#ffffff", fontsize="10.00", label="<method 'nonzero' of 'numpy.ndarray' objects>\n0.64%\n(0.64%)\n200×"];
+	"<method 'reduceat' of 'numpy.ufunc' objects>" [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="<method 'reduceat' of 'numpy.ufunc' objects>\n2.70%\n(2.70%)\n200×"];
+	"<method 'reshape' of 'numpy.ndarray' objects>" [color="#0d1575", fontcolor="#ffffff", fontsize="10.00", label="<method 'reshape' of 'numpy.ndarray' objects>\n1.95%\n(1.95%)\n114×"];
+	"<skimage.measure._find_contours_cy.iterate_and_store>" [color="#0d0f74", fontcolor="#ffffff", fontsize="10.00", label="<skimage.measure._find_contours_cy.iterate_and_store>\n0.67%\n(0.67%)\n9×"];
+	"get_data" [color="#0d1575", fontcolor="#ffffff", fontsize="10.00", label="get_data\n2.06%\n(1.87%)\n1091×"];
+	ones [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="ones\n2.78%\n(0.01%)\n306×"];
+	ones -> "<built-in method numpy.core.multiarray.copyto>" [arrowsize="0.35", color="#0d1876", fontcolor="#0d1876", fontsize="10.00", label="2.76%\n306×", labeldistance="0.50", penwidth="0.50"];
 }

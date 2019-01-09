@@ -200,8 +200,26 @@ class Boundary(object):
         self.tail = self.transform_polar_to_cartesian(tail_angle, tail_distance, self.__central_gravity)
         
         self.orientation = self.compute_angle(self.head, self.__central_gravity)
+      
         
+    def extract_position(self, img):
+        x = []
+        y = []
         
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
+                if bw_image[i,j] :
+                    x.append(j)
+                    y.append(i)
+        
+        data = np.column_stack( (x,y))
+        return data
+    
+    def extract_position_fast(self, img):
+        indices = np.where(img > [0])
+        coordinates = np.array( list( zip(indices[0], indices[1]) ) )
+        return coordinates
+    
         
     
     def PCA_method(self):
@@ -211,16 +229,8 @@ class Boundary(object):
         threshold = skimage.filters.threshold_otsu(self.ref_image)
         bw_image = self.ref_image > threshold
         
-        x = []
-        y = []
-        
-        for i in range(bw_image.shape[0]):
-            for j in range(bw_image.shape[1]):
-                if bw_image[i,j] :
-                    x.append(j)
-                    y.append(i)
-        
-        data = np.column_stack( (x,y))
+        #data = extract_position(self, bw_image)
+        data = self.extract_position_fast(bw_image)
   
         # fit a PCA model 
         self.__pca = PCA(n_components=2)
