@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#%%
+#read and save image files, convert the original rgb files to gray scale files.
 class Embryo(object):
     
     def __init__(self, data = None):
