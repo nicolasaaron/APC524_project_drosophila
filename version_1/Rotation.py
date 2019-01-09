@@ -35,7 +35,7 @@ class Rotation(object):
         if ( isinstance(data, np.ndarray) and (len(data.shape) == 2) ):
             # data is an image
             self.ref_image = np.copy( data )
-        elif (isinstance(data, Embryo) ):
+        elif (data.__class__.__name__ == 'Embryo'):
             # data is an Embryo object
             self.ref_image = np.copy( data.raw_image)
         elif (data is None):
@@ -98,3 +98,4 @@ class Rotation(object):
             return embryo
         else:
             return Embryo(self.__rotated_image)
+
