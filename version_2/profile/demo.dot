@@ -2,13 +2,13 @@ digraph {
 	graph [fontname=Arial, nodesep=0.125, ranksep=0.25];
 	node [fontcolor=white, fontname=Arial, height=0, shape=box, style=filled, width=0];
 	edge [fontname=Arial];
-	"<built-in method marshal.loads>" [color="#0d0f73", fontcolor="#ffffff", fontsize="10.00", label="<built-in method marshal.loads>\n0.58%\n(0.58%)\n1091×"];
-	"<built-in method numpy.core.multiarray.copyto>" [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="<built-in method numpy.core.multiarray.copyto>\n2.76%\n(2.76%)\n314×"];
-	"<method 'nonzero' of 'numpy.ndarray' objects>" [color="#0d0f74", fontcolor="#ffffff", fontsize="10.00", label="<method 'nonzero' of 'numpy.ndarray' objects>\n0.64%\n(0.64%)\n200×"];
-	"<method 'reduceat' of 'numpy.ufunc' objects>" [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="<method 'reduceat' of 'numpy.ufunc' objects>\n2.70%\n(2.70%)\n200×"];
-	"<method 'reshape' of 'numpy.ndarray' objects>" [color="#0d1575", fontcolor="#ffffff", fontsize="10.00", label="<method 'reshape' of 'numpy.ndarray' objects>\n1.95%\n(1.95%)\n114×"];
-	"<skimage.measure._find_contours_cy.iterate_and_store>" [color="#0d0f74", fontcolor="#ffffff", fontsize="10.00", label="<skimage.measure._find_contours_cy.iterate_and_store>\n0.67%\n(0.67%)\n9×"];
-	"get_data" [color="#0d1575", fontcolor="#ffffff", fontsize="10.00", label="get_data\n2.06%\n(1.87%)\n1091×"];
-	ones [color="#0d1876", fontcolor="#ffffff", fontsize="10.00", label="ones\n2.78%\n(0.01%)\n306×"];
-	ones -> "<built-in method numpy.core.multiarray.copyto>" [arrowsize="0.35", color="#0d1876", fontcolor="#0d1876", fontsize="10.00", label="2.76%\n306×", labeldistance="0.50", penwidth="0.50"];
+	"<built-in method _tkinter.create>" [color="#0d0f73", fontcolor="#ffffff", fontsize="10.00", label="<built-in method _tkinter.create>\n0.52%\n(0.52%)\n3×"];
+	"<built-in method numpy.core.multiarray.bincount>" [color="#0d1074", fontcolor="#ffffff", fontsize="10.00", label="<built-in method numpy.core.multiarray.bincount>\n0.86%\n(0.86%)\n8644×"];
+	"<built-in method numpy.core.multiarray.dot>" [color="#0d0f73", fontcolor="#ffffff", fontsize="10.00", label="<built-in method numpy.core.multiarray.dot>\n0.51%\n(0.51%)\n2659×"];
+	"<method 'append' of 'collections.deque' objects>" [color="#0d1174", fontcolor="#ffffff", fontsize="10.00", label="<method 'append' of 'collections.deque' objects>\n0.92%\n(0.92%)\n1470223×"];
+	"<method 'appendleft' of 'collections.deque' objects>" [color="#0d1074", fontcolor="#ffffff", fontsize="10.00", label="<method 'appendleft' of 'collections.deque' objects>\n0.84%\n(0.84%)\n1340129×"];
+	"<method 'astype' of 'numpy.ndarray' objects>" [color="#0d0f73", fontcolor="#ffffff", fontsize="10.00", label="<method 'astype' of 'numpy.ndarray' objects>\n0.51%\n(0.51%)\n56061×"];
+	"<method 'reduce' of 'numpy.ufunc' objects>" [color="#0d1375", fontcolor="#ffffff", fontsize="10.00", label="<method 'reduce' of 'numpy.ufunc' objects>\n1.46%\n(1.46%)\n158957×"];
+	"<skimage.measure._find_contours_cy.iterate_and_store>" [color="#0d1976", fontcolor="#ffffff", fontsize="10.00", label="<skimage.measure._find_contours_cy.iterate_and_store>\n2.87%\n(2.87%)\n240×"];
+	"get_data" [color="#0d257a", fontcolor="#ffffff", fontsize="10.00", label="get_data\n5.62%\n(5.57%)\n1097×"];
 }

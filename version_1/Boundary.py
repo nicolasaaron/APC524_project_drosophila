@@ -142,7 +142,9 @@ class Boundary(object):
     # compute the curvature for the convex contour of referenced image
     # we transform boundary_curve into polar coordinates and use FFT to fit the curve
         self.detect_gravity_central()
-        self.detect_convex_hull()
+        
+        #self.detect_convex_hull()
+        self.detect_convex_hull_from_boundary()
         
         x = self.convex_contour[:,1]
         y = self.convex_contour[:,0]

@@ -169,3 +169,129 @@ bd.detect_convex_hull()
 plt.imshow(bd.convex_hull)
 plt.show()
 
+#%%
+
+
+
+
+
+""""
+The following are debug code for demo.py    
+#%%  debug
+
+ 
+embryo_list = load_data() 
+convert_to_grayscale(embryo_list)
+    
+acceptance_threshold = 0.001
+max_operations = 10
+reference_embryo = embryo_list[:,0]
+    
+_, _, cum_angles =rotation_process_angles(reference_embryo,
+                                          mode='curvature', 
+                                          epsilon=acceptance_threshold,
+                                          max_operations = max_operations)
+    
+rotated_embryo_list = rotation_process(embryo_list, cum_angles, mode='curvature')
+
+
+reference_embryo = rotated_embryo_list[:,0]
+active_area_list = active_area_process(reference_embryo, mode='curvature')
+
+#intensity_curves = intensity_process(embryo_list, active_area_list, mode='pca')
+
+
+#%% Debug PCA
+
+import skimage.filters
+import skimage.draw
+from sklearn.decomposition import PCA
+import math
+
+egg = embryo_list[0,0]
+threshold = skimage.filters.threshold_otsu(egg.raw_image)
+bw_image = egg.raw_image > threshold
+data = extract_position_fast(bw_image)
+
+pca = PCA(n_components=2)
+pca.fit(data)
+
+def compute_angle(point, origin=(0,0)):
+        return np.angle( (point[0] - origin[0] ) - 1j * (point[1] - origin[1]) )
+   
+
+def distinguish_major_minor_axis(img, axis_0, axis_1, central):
+    theta_0 = compute_angle(axis_0)
+    theta_1 = compute_angle(axis_1)
+    print(theta_0, theta_1)
+    
+    img_row, img_col = img.shape
+    c_row, c_col = central
+    
+    if ( theta_0 > -math.pi / 4 and theta_0 < math.pi/4) or \
+       (theta_0 > math.pi* 3/4 or theta_0 < - math.pi * 3 / 4):
+        pt_0_a = [ np.round(math.tan( theta_0) * (img_col - c_col)).astype(int) + c_row , img_col-1]
+        pt_0_b = [- np.round( math.tan( theta_0 ) * c_col).astype(int) + c_row, 0]
+    else:
+        pt_0_a = [0, np.round( c_row / math.tan(theta_0) ).astype(int) + c_col]
+        pt_0_b = [img_row-1, - np.round( (img_row - c_row) / math.tan(theta_0) ).astype(int) + c_col ]
+    
+    if ( theta_1 > -math.pi / 4 and theta_1 < math.pi/4) or \
+       (theta_1 > math.pi* 3/4 or theta_1 < - math.pi * 3 / 4):
+        pt_1_a = [np.round(math.tan( theta_1) * (img_col - c_col)).astype(int) + c_row , img_col-1]
+        pt_1_b = [- np.round(math.tan( theta_1 ) * c_col).astype(int) + c_row, 0]
+    else:
+        pt_1_a = [0, np.round( c_row/math.tan(theta_1) ).astype(int) + c_col]
+        pt_1_b = [img_row-1, - np.round( (img_row - c_row) / math.tan(theta_1) ).astype(int) +c_col ]
+        
+    
+    rr_0,cc_0 = skimage.draw.line(pt_0_a[0], pt_0_a[1], pt_0_b[0], pt_0_b[1])
+    rr_1,cc_1 = skimage.draw.line(pt_1_a[0], pt_1_a[1], pt_1_b[0], pt_1_b[1])
+    
+    sum_0 = np.sum(img[rr_0,cc_0])
+    sum_1 = np.sum(img[rr_1,cc_1])
+    
+    if sum_1 > sum_0:
+        major_axis = axis_1
+        minor_axis = axis_0
+    else:
+        major_axis = axis_0
+        minor_axis = axis_1
+        
+    return [major_axis, minor_axis]
+    
+pca_center = np.array(pca.mean_).astype(int)
+pca_axis = pca.components_
+
+distinguish_major_minor_axis(bw_image, pca_axis[0], pca_axis[1], pca_center)    
+        
+        
+
+
+#%%
+embryo_list = load_data() 
+convert_to_grayscale(embryo_list)
+
+egg = embryo_list[0,0]
+mode = 'pca'
+
+r=Rotation(egg)
+r.rotate_embryo(egg, bd_mode = mode, inplace=True)
+
+#active_area = active_area_list[0]
+testing_img = Polygon(egg)
+bd = Boundary(egg)
+bd.detect_head_tail(mode)
+
+testing_img.view()
+testing_img.detect_area(boundary = bd)
+testing_img.view_area()
+
+
+
+
+
+#%%
+Intensity.detect_intensity(egg, boundary=bd, testing_area = testing_img, horizontal_flag=False, bd_mode='pca')
+
+"""

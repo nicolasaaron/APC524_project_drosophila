@@ -37,9 +37,9 @@ def detect_intensity(embryo, boundary = None, testing_area = None, horizontal_fl
             boundary.mode = bd_mode
             boundary.detect_head_tail(bd_mode)
             
-     
+        
     # initialize end_pt as head
-    end_pt = np.round( boundary.get_head(boundary.mode) ).astype(int)
+    end_pt = boundary.get_head(boundary.mode) 
     # initialize start_pt
     if horizontal_flag: 
         # predict the starting point for profile line based on center and end_pt
@@ -60,7 +60,14 @@ def detect_intensity(embryo, boundary = None, testing_area = None, horizontal_fl
             start_pt = boundary.get_tail('pca')
     else:
         start_pt = boundary.get_tail(boundary.mode)
-
+    
+    
+    #check position of start and end points, start should be on the left of end point
+    start_pt = np.round(start_pt).astype(int)
+    end_pt   = np.round(end_pt).astype(int)
+    if start_pt[0] > end_pt[0]:
+        start_pt, end_pt = end_pt, start_pt
+    
     #initialize testing area     
     if testing_area is None:
         testing_area= Polygon(embryo.raw_image)
@@ -68,7 +75,8 @@ def detect_intensity(embryo, boundary = None, testing_area = None, horizontal_fl
             testing_area.detect_area(boundary)
         else:
             testing_area.detect_area()
-  
+    
+    #testing_area.view_area()
     
     # find testing area in 'raw_image'
     testing_zone = embryo.raw_image *  testing_area.area
@@ -76,18 +84,20 @@ def detect_intensity(embryo, boundary = None, testing_area = None, horizontal_fl
     
     
     # compute intensity along the line connecting start and end points in testing_zone
-
+   
     if horizontal_flag:
         # in case the embryo is level
         x = np.arange(start_pt[0], end_pt[0]+1)
         value = skimage.measure.profile_line(testing_zone, (end_pt[1], start_pt[0]), (end_pt[1], end_pt[0]))
         #print(len(x))
-        #print(value.shape)
+        #print(len(value))
         intensity_curve = np.column_stack((x,value))
     else:
-        rr,cc = skimage.draw.line(start_pt[0], start_pt[1], end_pt[0], end_pt[1])
+        #rr,cc = skimage.draw.line(start_pt[1], start_pt[0], end_pt[1], end_pt[0])
+        #print(len(rr))
         value = skimage.measure.profile_line(testing_zone, (start_pt[1], start_pt[0]), (end_pt[1], end_pt[0]) )
-        intensity_curve = np.column_stack((rr,cc,value))
+        x = np.linspace(0,1, num= len(value), endpoint = True)
+        intensity_curve = np.column_stack((x,value))
         
     return intensity_curve
 

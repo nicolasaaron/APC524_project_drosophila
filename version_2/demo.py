@@ -32,7 +32,7 @@ def load_data():
     
     #gene_names = np.array( ['C1-ubcd full blue','C2-ubcd full blue','C3-ubcd full blue','C4-ubcd full blue'] )
     gene_names = np.array( ['C1-ubcd dark','C2-ubcd dark','C3-ubcd dark','C4-ubcd dark'] )
-    gene_positions = [2]
+    gene_positions = [1,2,3,4,5,6,7,8]
     
     for position in gene_positions:
         temp_list = []
@@ -97,6 +97,7 @@ def remove_outliers(img, perc_outlier = 0.01):
     egg.denoise()    
     egg.clear_border()
     
+    """
     #pos_data = extract_position(egg)
     pos_data = extract_position_fast(egg.raw_image)
     
@@ -114,7 +115,7 @@ def remove_outliers(img, perc_outlier = 0.01):
         row, col = pos_data[i,:]
         if label_predict[i] == -1:
             egg.raw_image[(row,col)] = 0
-    
+    """
         
     return egg
 
@@ -153,7 +154,7 @@ def rotation_process_angles(embryo_list, mode='pca', epsilon = 0.005, max_operat
         
         while (count_operation < max_operations and abs(r.view_inclination(bd_mode = mode)) > epsilon):
             count_operation +=1
-            #print(r.view_inclination(bd_mode=mode))
+            print(count_operation, '\t', r.view_inclination(bd_mode=mode))
             rotated_egg = r.rotate_embryo(bd_mode = mode, inplace=True)
             angle += r.angle
         
@@ -212,7 +213,7 @@ def intensity_process(embryo_list, active_area_list, mode='pca'):
         embryos = embryo_list[i,:]
         active_area = active_area_list[i]
         
-        print(i)
+        #print(i)
         curves = []
         for egg in embryos:
             print(egg.gene_name, egg.gene_position)
@@ -229,6 +230,33 @@ def intensity_process(embryo_list, active_area_list, mode='pca'):
         intensity_curves.append(curves)
     
     return np.array(intensity_curves)
+
+
+#%%
+import scipy.signal
+
+def normalization_process(intensity_curves):
+    normalization_curves = []
+    N,M = intensity_curves.shape
+    print(N,M)
+    for i in range(N):
+        temp_list=[]
+        for j in range(M):
+            curve = intensity_curves[i,j]
+            x = curve[:,0] # suppose x is increasing
+            y = curve[:,1]
+            
+            x_norm = (x / x[-1]) * 100 # normalize to Egg Length     
+            y_filtered=scipy.signal.savgol_filter(y, 101, 3) # filter out signal noise by Savitzky–Golay filter
+            y_norm = (y_filtered-min(y_filtered))/(max(y_filtered)-min(y_filtered)) #normalize by min max values
+            
+            normalized_curve = np.column_stack((x_norm, y_norm))
+        
+            temp_list.append(normalized_curve)
+            
+        normalization_curves.append(temp_list)
+    
+    return np.array(normalization_curves)
         
 #%%
 def view_embryos(embryo_list):
@@ -250,46 +278,54 @@ def view_inclination(r_list, mode='pca'):
         print(r.view_inclination(bd_mode = mode))
 
 def view_intensity_curves(intensity_curves, col_idx=0):
-    Intensity.view(intensity_curves[col_idx, :])
+    Intensity.view(intensity_curves[:, col_idx])
         
 
 #%%
       
 
-if __name__ == '__main__':
-    embryo_list = load_data()  
-    convert_to_grayscale(embryo_list)
-    pre_processing(embryo_list)
-    #view_embryos(embryo_list)
-    
-    
-    acceptance_threshold = 0.001
-    max_operations = 2
-    reference_embryo = embryo_list[:,0]
-    
-    _, _, cum_angles =rotation_process_angles(reference_embryo,
-                                              mode='pca', 
-                                              epsilon=acceptance_threshold,
-                                              max_operations = max_operations)
-                
-    rotated_embryo_list = rotation_process(embryo_list, cum_angles, mode='pca')
-    
-    #view_embryos(rotated_list)
-    
-    reference_embryo = rotated_embryo_list[:,0]
-    active_area_list = active_area_process(reference_embryo, mode='pca')
-    
-    intensity_curves = intensity_process(embryo_list, active_area_list, mode='pca')
+
+embryo_list = load_data()  
+convert_to_grayscale(embryo_list)
+pre_processing(embryo_list)
+#view_embryos(embryo_list)
+
+# rotation with PCA
+acceptance_threshold = 0.001
+max_operations = 1
+reference_embryo = embryo_list[:,0]
+
+_, _, cum_angles =rotation_process_angles(reference_embryo,
+                                          mode='pca', 
+                                          epsilon=acceptance_threshold,
+                                          max_operations = max_operations)
+            
+rotated_embryo_list = rotation_process(embryo_list, cum_angles, mode='pca')
+
+# rotation with curvature
+acceptance_threshold = 0.001
+max_operations = 1
+reference_embryo = embryo_list[:,0]
+
+_, _, cum_angles =rotation_process_angles(reference_embryo,
+                                          mode='curvature', 
+                                          epsilon=acceptance_threshold,
+                                          max_operations = max_operations)
+            
+rotated_embryo_list = rotation_process(embryo_list, cum_angles, mode='curvature')
 
 
-    #view_intensity_curves(intensity_curves, col_idx=0)
+reference_embryo = rotated_embryo_list[:,0]
+active_area_list = active_area_process(reference_embryo, mode='pca')
 
-    
-    
-    
-   
-    
-    
-    
-    
+intensity_curves = intensity_process(embryo_list, active_area_list, mode='pca')
+normalized_curves = normalization_process(intensity_curves)
+
+#view_embryos(embryo_list)
+view_intensity_curves(normalized_curves, col_idx=0)
+view_intensity_curves(normalized_curves, col_idx=1)
+view_intensity_curves(normalized_curves, col_idx=2)
+view_intensity_curves(normalzied_curves, col_idx=3)
+
+  
     
