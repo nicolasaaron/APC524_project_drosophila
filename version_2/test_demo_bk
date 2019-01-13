@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+#
+project_folder='/mnt/d/Princeton_3rd/course/APC524/APC524_project_drosophila'
+version='version_2'
+profile_dir='profile'
+#
+# the py file for profiling test
+filename='demo.py'
+#
+# define output filenames
+cprofilefile='$profile_dir/${filename/py/pstats}'
+callgrindfile='$profile_dir/${filename/py/callgrind}'
+dotfile='$profile_dir/${filename/py/dot}'
+pngfile='$profile_dir/${filename/py/png}'
+#
+#
+#
+# change to project folder
+cd '${project_folder}/${version}'
+#
+# run cProfile
+python3 -m cProfile -o profile/demo.pstats demo.py
+#
+# change to profile directory
+cd profile
+#
+# run pyprof2calltree for visualizaiton
+pyprof2calltree -i demo.pstats -o demo.callgrind
+#
+# convert to graphviz
+gprof2dot -f callgrind demo.callgrind -o demo.dot
+#
+# save to png file with graphviz
+dot -Tpng demo.dot -o demo.png
+#
+# run qcachegrind
+#qcachegrind demo.callgrind

@@ -1,0 +1,7 @@
+for (i=1; i<30;i++) {
+	run("Make Substack...", "channels=1-4 frames="+i);
+	saveAs("Tiff", "/Users/pingwu/Desktop/raw_images/ubcd in dark"+i);
+}
+
+
+
