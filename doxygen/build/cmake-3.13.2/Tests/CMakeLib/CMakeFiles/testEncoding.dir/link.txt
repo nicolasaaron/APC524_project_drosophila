@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/clang++   -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/testEncoding.dir/testEncoding.cxx.o  -o testEncoding ../../Source/kwsys/libcmsys.a 

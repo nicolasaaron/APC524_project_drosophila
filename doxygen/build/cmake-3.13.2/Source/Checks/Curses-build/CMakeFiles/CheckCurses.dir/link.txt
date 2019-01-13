@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/clang  -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/CheckCurses.dir/CheckCurses.c.o  -o CheckCurses /usr/lib/libncurses.dylib /usr/lib/libform.dylib 
