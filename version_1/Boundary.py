@@ -119,7 +119,9 @@ class Boundary(object):
         self.__cgx, self.__cgy = np.round(cgx), np.round(cgy)
         self.__central_gravity = np.array([self.__cgx, self.__cgy])
     
+    
     def detect_convex_hull(self, threshold=None):
+        self.contour_to_image()
         if threshold is None:
             threshold = skimage.filters.threshold_otsu(self.c_image)
         
@@ -128,11 +130,12 @@ class Boundary(object):
         self.convex_contour = contours[0]    
    
     def contour_to_image(self):
-        self.shape = self.ref_image.shape
+        self.detect_boundary()
+        shape = self.ref_image.shape
         self.c_image = np.zeros(shape)
         for i in range(len(self.boundary_curve)):
-             x = boundary_curve[i][0].astype(int)
-             y = boundary_curve[i][1].astype(int)
+             x = self.boundary_curve[i][0].astype(int)
+             y = self.boundary_curve[i][1].astype(int)
              self.c_image[x,y] =1
     
     
@@ -150,8 +153,8 @@ class Boundary(object):
     # we transform boundary_curve into polar coordinates and use FFT to fit the curve
         self.detect_gravity_central()
         
-        #self.detect_convex_hull()
-        self.detect_convex_hull_from_boundary()
+        self.detect_convex_hull()
+        #self.detect_convex_hull_from_boundary()
         
         x = self.convex_contour[:,1]
         y = self.convex_contour[:,0]
